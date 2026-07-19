@@ -300,33 +300,67 @@ http://localhost:8000/api/v1
 
 ---
 
-## 🧪 Testing with Postman
+## 🧪 Testing with Postman & Data Flow
 
-### ➕ Register a New User
+This API relies on **MongoDB Atlas** for database storage and **Cloudinary** for media management. Here is a standard flow for testing authentication and media uploads using **Postman**:
 
-| Field | | |
-|---|---|---|
-| Method | `POST` | |
-| URL | `http://localhost:8000/api/v1/user/register` | |
-| Body | `form-data` | |
+> 💡 **Postman Tip:** To make testing easier, set up a Collection Variable named `Video Hosting` with the value `http://localhost:8000/api/v1`. You can then use `{{Video Hosting}}` in your URLs.
 
-| Key | Type | Example Value |
-|-----|------|---------------|
-| `fullName` | Text | `Mohammad Asfin` |
-| `email` | Text | `asfin@example.com` |
-| `username` | Text | `mohammad_asfin` |
-| `password` | Text | `SecurePass@123` |
-| `avatar` | File | *(select an image file)* |
-| `coverImage` | File | *(optional, select an image)* |
+### 1️⃣ Register a New User (Uploads to Cloudinary & MongoDB)
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/users/register`
+*   **Body Type**: `form-data`
+
+| Key | Type | Example Value | Description |
+|-----|------|---------------|-------------|
+| `fullName` | Text | `Levi Ackerman` | User's full name |
+| `username` | Text | `leviackerman` | Unique username |
+| `email` | Text | `levi@aot.com` | User's email |
+| `password` | Text | `12345678` | Secure password |
+| `avatar` | File | `Levi.jpg` | **Required.** Uploads to Cloudinary. |
+| `coverImage` | File | `AOT cover.jpg` | **Optional.** Uploads to Cloudinary. |
+
+> 🔄 **Data Flow:**
+> *   **Cloudinary:** The `avatar` and `coverImage` files are processed by Multer and successfully uploaded to your Cloudinary Media Library. The secure URLs are returned.
+> *   **MongoDB Atlas:** A new document is created in the `users` collection within your `videotube` database, securely storing the hashed password and the Cloudinary image URLs.
 
 **Expected response:** `201 Created`
 
+---
+
+### 2️⃣ Login User (Generates JWT Tokens)
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/users/login`
+*   **Body Type**: `raw` (JSON)
+
 ```json
 {
-  "statusCode": 201,
-  "data": { "username": "mohammad_asfin", "email": "asfin@example.com" },
-  "message": "User registered successfully",
-  "success": true
+    "email": "levi@aot.com",
+    "password": "12345678"
+}
+```
+
+**Expected Response:** `200 OK`
+The server validates the credentials and returns an `accessToken` (for authorizing requests) and a `refreshToken` (for getting new access tokens). These tokens are also securely set in HttpOnly cookies.
+
+---
+
+### 3️⃣ Logout User (Clears Tokens)
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/users/logout`
+*   **Headers**: Requires the user to be logged in (cookies set by login).
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {},
+    "message": "User logged Out",
+    "success": true
 }
 ```
 
