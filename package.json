@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "video-hosting-backend",
   "version": "1.0.0",
-  "description": "a backend at chai aur code.",
+  "description": "A production-grade REST API backend for a YouTube-like video hosting platform built with Node.js, Express, MongoDB, JWT, and Cloudinary.",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,14 @@
   "keywords": [
     "javascript",
     "backend",
-    "chai"
+    "nodejs",
+    "expressjs",
+    "mongodb",
+    "mongoose",
+    "jwt",
+    "cloudinary",
+    "rest-api",
+    "video-hosting"
   ],
   "author": "Mohammad Asfin",
   "license": "ISC",
