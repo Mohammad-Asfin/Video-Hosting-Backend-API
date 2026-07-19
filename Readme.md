@@ -99,8 +99,8 @@ View the complete Entity-Relationship diagram:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Mohammad-Asfin/Backend.git
-cd Backend
+git clone https://github.com/Mohammad-Asfin/video-hosting-backend.git
+cd video-hosting-backend
 ```
 
 ### 2. Install Dependencies
@@ -310,7 +310,7 @@ This is not a regular open-source project with general PRs. Contributions requir
 
 1. Fork the repository
 2. Complete **all controllers** with the TODO assignments
-3. Open a [GitHub Issue](https://github.com/Mohammad-Asfin/Backend/issues) once all controllers are done
+3. Open a [GitHub Issue](https://github.com/Mohammad-Asfin/video-hosting-backend/issues) once all controllers are done
 4. After code review, your repo link will be added to this README
 
 ---
@@ -318,7 +318,7 @@ This is not a regular open-source project with general PRs. Contributions requir
 ## 📎 Useful Links
 
 - 🔗 [ER Diagram (Eraser.io)](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj?origin=share)
-- 🌐 [GitHub Repository](https://github.com/Mohammad-Asfin/Backend)
+- 🌐 [GitHub Repository](https://github.com/Mohammad-Asfin/video-hosting-backend)
 - ☁️ [Cloudinary Dashboard](https://cloudinary.com/)
 - 🍃 [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 
