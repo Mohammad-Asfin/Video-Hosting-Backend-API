@@ -1,89 +1,142 @@
+<div align="center">
+
 # 🎬 Video Hosting Backend API
 
-> A production-grade, scalable **REST API backend** for a YouTube-like video hosting platform — built with **Node.js**, **Express**, **MongoDB**, **Mongoose**, **JWT**, **Cloudinary**, and more.
+### The Backend Powerhouse of a Full-Stack MERN Video Platform
 
-**Author:** Mohammad Asfin  
-**License:** ISC  
-**Version:** 1.0.0
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express.js-4.x-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-Media-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)](https://cloudinary.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](./LICENSE)
+
+> A production-grade, scalable **REST API** built with the **MERN Stack** (MongoDB · Express · React · Node.js) to power a YouTube-like video hosting platform — featuring JWT auth, Cloudinary media management, aggregation pipelines, and more.
+
+**Author:** Mohammad Asfin &nbsp;|&nbsp; **Stack:** MERN &nbsp;|&nbsp; **License:** MIT &nbsp;|&nbsp; **Version:** 1.0.0
+
+[🚀 Quick Start](#️-installation--setup) · [📬 API Docs](#-api-endpoints) · [🤝 Contributing](./CONTRIBUTING.md) · [🐛 Report Bug](https://github.com/Mohammad-Asfin/Video-Hosting-Backend-API/issues) · [💡 Request Feature](https://github.com/Mohammad-Asfin/Video-Hosting-Backend-API/issues)
+
+</div>
 
 ---
 
 ## 📌 Project Overview
 
-This is a fully-featured backend project that powers a video hosting platform similar to YouTube. It implements all core backend features including authentication, authorization, video management, likes, comments, subscriptions, playlists, and a dashboard.
+This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting web application — similar to YouTube. It exposes a complete REST API consumed by a React frontend, handling everything from user authentication to video streaming metadata, social interactions, and cloud media management.
 
-### Key Features
+> 🧩 **MERN Stack Breakdown:**
+> | Layer | Technology | Role |
+> |-------|-----------|------|
+> | **M** | MongoDB + Mongoose | Database & ODM |
+> | **E** | Express.js | REST API Framework |
+> | **R** | React.js *(Frontend — separate repo)* | Client-side UI |
+> | **N** | Node.js | JavaScript Runtime |
 
-- 🔐 **JWT-based Authentication** — Access & Refresh token strategy
-- 🔑 **Password Encryption** — Secure hashing using `bcrypt`
-- 📹 **Video Uploads** — Cloud-based media handling via `Cloudinary` + `Multer`
-- 💬 **Comments, Likes & Replies** — Full social interaction system
-- 📋 **Playlists** — Create and manage video playlists
-- 🔔 **Subscriptions** — Channel subscribe/unsubscribe functionality
-- 📊 **Dashboard** — Channel stats and analytics
-- 🐦 **Tweets** — Short text posts (Twitter-like feature)
-- 🩺 **Health Check** — API health endpoint
-- 🌐 **CORS** — Configured cross-origin resource sharing
-- 🧹 **Prettier** — Opinionated code formatting enforced
+---
+
+## ✨ Key Features
+
+- 🔐 **JWT Authentication** — Stateless access & refresh token strategy
+- 🔑 **Password Security** — bcrypt hashing (never stored as plain text)
+- 📹 **Video Uploads** — Cloud media handling via Cloudinary + Multer
+- 💬 **Comments & Replies** — Nested comment system
+- 👍 **Likes / Dislikes** — On videos, comments, and tweets
+- 📋 **Playlists** — Create, update, and manage video playlists
+- 🔔 **Subscriptions** — Channel subscribe / unsubscribe with counts
+- 📊 **Dashboard** — Channel analytics (views, subscribers, videos, likes)
+- 🐦 **Tweets** — Short-form text posts per user
+- 🩺 **Health Check** — `/healthcheck` endpoint for uptime monitoring
+- 🌐 **CORS** — Fully configurable cross-origin resource sharing
+- 📄 **Pagination** — MongoDB aggregation pipeline pagination
+- 🧹 **Code Quality** — Prettier enforced across the codebase
 
 ---
 
 ## 🗂️ Project Structure
 
 ```
-src/
-├── controllers/        # Route handlers (business logic)
-│   ├── comment.controller.js
-│   ├── dashboard.controller.js
-│   ├── healthcheck.controller.js
-│   ├── like.controller.js
-│   ├── playlist.controller.js
-│   ├── subscription.controller.js
-│   ├── tweet.controller.js
-│   ├── user.controller.js
-│   └── video.controller.js
-├── db/                 # Database connection
-│   └── index.js
-├── middlewares/        # Custom middleware
-│   ├── auth.middleware.js
-│   └── multer.middleware.js
-├── models/             # Mongoose schemas
-│   ├── comment.model.js
-│   ├── like.model.js
-│   ├── playlist.model.js
-│   ├── subscription.model.js
-│   ├── tweet.model.js
-│   ├── user.model.js
-│   └── video.model.js
-├── routes/             # Express route definitions
-│   ├── comment.routes.js
-│   ├── dashboard.routes.js
-│   ├── healthcheck.routes.js
-│   ├── like.routes.js
-│   ├── playlist.routes.js
-│   ├── subscription.routes.js
-│   ├── tweet.routes.js
-│   ├── user.routes.js
-│   └── video.routes.js
-├── utils/              # Utility helpers
-│   ├── ApiError.js
-│   ├── ApiResponse.js
-│   ├── asyncHandler.js
-│   └── cloudinary.js
-├── app.js              # Express app setup
-├── constants.js        # App-wide constants
-└── index.js            # Server entry point
-public/
-└── temp/               # Temporary file storage (local uploads)
+📦 Video-Hosting-Backend-API
+├── 📁 public/
+│   └── 📁 temp/                  # Temporary local file storage
+├── 📁 src/
+│   ├── 📁 controllers/           # Route handlers & business logic
+│   │   ├── comment.controller.js
+│   │   ├── dashboard.controller.js
+│   │   ├── healthcheck.controller.js
+│   │   ├── like.controller.js
+│   │   ├── playlist.controller.js
+│   │   ├── subscription.controller.js
+│   │   ├── tweet.controller.js
+│   │   ├── user.controller.js
+│   │   └── video.controller.js
+│   ├── 📁 db/
+│   │   └── index.js              # MongoDB connection setup
+│   ├── 📁 middlewares/
+│   │   ├── auth.middleware.js    # JWT verification middleware
+│   │   └── multer.middleware.js  # File upload middleware
+│   ├── 📁 models/                # Mongoose schemas & models
+│   │   ├── comment.model.js
+│   │   ├── like.model.js
+│   │   ├── playlist.model.js
+│   │   ├── subscription.model.js
+│   │   ├── tweet.model.js
+│   │   ├── user.model.js
+│   │   └── video.model.js
+│   ├── 📁 routes/                # Express route definitions
+│   │   ├── comment.routes.js
+│   │   ├── dashboard.routes.js
+│   │   ├── healthcheck.routes.js
+│   │   ├── like.routes.js
+│   │   ├── playlist.routes.js
+│   │   ├── subscription.routes.js
+│   │   ├── tweet.routes.js
+│   │   ├── user.routes.js
+│   │   └── video.routes.js
+│   ├── 📁 utils/                 # Reusable utility helpers
+│   │   ├── ApiError.js           # Custom error class
+│   │   ├── ApiResponse.js        # Standardised API response
+│   │   ├── asyncHandler.js       # Async error wrapper
+│   │   └── cloudinary.js         # Cloudinary upload helper
+│   ├── app.js                    # Express app & middleware setup
+│   ├── constants.js              # App-wide constants (DB name, etc.)
+│   └── index.js                  # Server entry point
+├── .env.sample                   # Environment variable template
+├── .gitignore
+├── .prettierrc
+├── .prettierignore
+├── CONTRIBUTING.md
+├── LICENSE
+├── package.json
+└── Readme.md
 ```
 
 ---
 
-## 📐 Data Model
+## 📐 Data Model (ER Diagram)
 
-View the complete Entity-Relationship diagram:
+🔗 [View Full ER Diagram on Eraser.io](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj?origin=share)
 
-🔗 [Model Link (Eraser.io)](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj?origin=share)
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Version | Purpose |
+|---|---|---|
+| **Node.js** | 18+ | JavaScript runtime |
+| **Express.js** | ^4.x | REST API framework |
+| **MongoDB** | Atlas | NoSQL document database |
+| **Mongoose** | ^8.x | MongoDB ODM |
+| **mongoose-aggregate-paginate-v2** | ^1.x | Aggregation pagination plugin |
+| **jsonwebtoken** | ^9.x | JWT access & refresh tokens |
+| **bcrypt** | ^5.x | Secure password hashing |
+| **Cloudinary** | ^1.x | Cloud media upload & management |
+| **Multer** | ^1.x | Multipart file upload middleware |
+| **dotenv** | ^16.x | Environment variable loader |
+| **cookie-parser** | ^1.x | HTTP cookie parsing |
+| **cors** | ^2.x | Cross-Origin Resource Sharing |
+| **nodemon** *(dev)* | ^3.x | Auto-restart on file changes |
+| **Prettier** *(dev)* | ^3.x | Opinionated code formatter |
 
 ---
 
@@ -91,61 +144,67 @@ View the complete Entity-Relationship diagram:
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) v18+
-- [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account (or local MongoDB)
-- [Cloudinary](https://cloudinary.com/) account
-- [Git](https://git-scm.com/)
+Ensure the following are installed before proceeding:
+
+- ✅ [Node.js](https://nodejs.org/) v18+
+- ✅ [Git](https://git-scm.com/)
+- ✅ [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account
+- ✅ [Cloudinary](https://cloudinary.com/) account
+
+---
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Mohammad-Asfin/video-hosting-backend.git
-cd video-hosting-backend
+git clone https://github.com/Mohammad-Asfin/Video-Hosting-Backend-API.git
+cd Video-Hosting-Backend-API
 ```
 
-### 2. Install Dependencies
+---
 
-Run the following commands to install all required packages:
+### 2. Install All Dependencies
+
+**Individual packages (with descriptions):**
 
 ```bash
-# Dev Dependency — Auto-restart server on file changes
+# Dev — Auto-restart on file changes
 npm i -D nodemon
 
-# Opinionated code formatter
-npm i prettier
+# Dev — Opinionated code formatter
+npm i -D prettier
 
-# MongoDB object modeling tool
+# MongoDB object modeling (ODM)
 npm i mongoose
 
-# Fast, unopinionated, minimalist web framework for Node.js
+# Fast, minimalist web framework for Node.js
 npm i express
 
-# Loads environment variables from a .env file
+# Load environment variables from .env file
 npm i dotenv
 
-# Parse Cookie header and populate req.cookies
+# HTTP cookie parsing middleware
 npm i cookie-parser
 
-# Node.js CORS middleware for Express/Connect
+# Node.js CORS middleware for Express
 npm i cors
 
-# Mongoose plugin for aggregate pagination
+# Mongoose aggregation pipeline pagination plugin
 npm i mongoose-aggregate-paginate-v2
 
-# Library to hash passwords securely
+# Secure password hashing library
 npm i bcrypt
 
-# JSON Web Tokens implementation for Node.js
+# JSON Web Token implementation
 npm i jsonwebtoken
 
-# Cloudinary Node SDK for media upload and management
+# Cloudinary Node SDK — media upload & transformation
 npm i cloudinary
 
-# Node.js middleware for handling multipart/form-data (file uploads)
+# Multipart/form-data middleware (file uploads)
 npm i multer
 ```
 
-> **Or install everything at once:**
+**Or install everything at once:**
 
 ```bash
 npm install
@@ -153,144 +212,123 @@ npm install
 
 ---
 
-## 🔐 Environment Variables Setup
-
-Copy the sample environment file and fill in your own values:
+### 3. Configure Environment Variables
 
 ```bash
 cp .env.sample .env
 ```
 
-### `.env` Configuration
+Open `.env` and fill in your values:
 
 ```env
 PORT=8000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net
+
 CORS_ORIGIN=*
 
-# JWT Secrets — Use different secrets for access and refresh tokens
-# Use at least 64 random bytes (128 hex characters)
-ACCESS_TOKEN_SECRET=your_super_secret_access_token_key_here
+# ⚠️ Use DIFFERENT secrets for access and refresh tokens
+# Generate with: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+ACCESS_TOKEN_SECRET=<your_64_byte_hex_secret_here>
 ACCESS_TOKEN_EXPIRY=1d
 
-REFRESH_TOKEN_SECRET=your_super_secret_refresh_token_key_here
+REFRESH_TOKEN_SECRET=<your_different_64_byte_hex_secret_here>
 REFRESH_TOKEN_EXPIRY=10d
 
-# Cloudinary Credentials
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+# Cloudinary (https://cloudinary.com/console)
+CLOUDINARY_CLOUD_NAME=<your_cloud_name>
+CLOUDINARY_API_KEY=<your_api_key>
+CLOUDINARY_API_SECRET=<your_api_secret>
 ```
 
-### 🔑 Generating Secure Secrets
-
-Use Node.js to generate cryptographically strong secrets:
+**Generate secure secrets:**
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
-Run this **twice** — once for `ACCESS_TOKEN_SECRET` and once for `REFRESH_TOKEN_SECRET`.
+Run this command **twice** — use one output for `ACCESS_TOKEN_SECRET` and a different one for `REFRESH_TOKEN_SECRET`.
 
-### ⚠️ Security Rules
-
-> **NEVER commit your `.env` file to GitHub.** It contains sensitive credentials.
-
-- ✅ Use **different secrets** for access and refresh tokens
-- ✅ Use **at least 64 random bytes** (128 hex characters) for each secret
-- ✅ Ensure `.env` is listed in your `.gitignore` file
-- ❌ Never share your `.env` file publicly
+> ⚠️ **Security Rules:**
+> - Never use the same secret for both tokens
+> - Use at least 64 random bytes (128 hex characters)
+> - **NEVER commit `.env` to GitHub** — it's already in `.gitignore`
 
 ---
 
-## 🚀 Running the Server
+### 4. Run the Server
 
 ```bash
-# Development mode (with nodemon auto-restart)
+# Development (nodemon auto-restarts on changes)
 npm run dev
 ```
 
-The server will start at: **`http://localhost:8000`**
+Server running at → **`http://localhost:8000`**
 
 ---
 
 ## 📬 API Endpoints
 
 ### Base URL
-
 ```
 http://localhost:8000/api/v1
 ```
 
-### 👤 User Routes — `/api/v1/user`
+### 👤 User — `/api/v1/user`
 
-| Method | Endpoint           | Description                         | Auth Required |
-|--------|--------------------|-------------------------------------|:-------------:|
-| POST   | `/register`        | Register a new user                 | ❌            |
-| POST   | `/login`           | Login and receive tokens            | ❌            |
-| POST   | `/logout`          | Logout current user                 | ✅            |
-| POST   | `/refresh-token`   | Refresh access token                | ❌            |
-| GET    | `/current-user`    | Get currently logged-in user        | ✅            |
-| PATCH  | `/update-account`  | Update account details              | ✅            |
-| PATCH  | `/avatar`          | Update user avatar                  | ✅            |
-| PATCH  | `/cover-image`     | Update cover image                  | ✅            |
-| GET    | `/c/:username`     | Get channel profile                 | ✅            |
-| GET    | `/history`         | Get watch history                   | ✅            |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|:----:|
+| `POST` | `/register` | Register a new user | ❌ |
+| `POST` | `/login` | Login & receive tokens | ❌ |
+| `POST` | `/logout` | Logout current user | ✅ |
+| `POST` | `/refresh-token` | Refresh access token | ❌ |
+| `PATCH` | `/change-password` | Change current password | ✅ |
+| `GET` | `/current-user` | Get logged-in user profile | ✅ |
+| `PATCH` | `/update-account` | Update name & email | ✅ |
+| `PATCH` | `/avatar` | Upload new avatar | ✅ |
+| `PATCH` | `/cover-image` | Upload new cover image | ✅ |
+| `GET` | `/c/:username` | Get channel profile | ✅ |
+| `GET` | `/history` | Get watch history | ✅ |
 
-### 🎥 Video Routes — `/api/v1/videos`
-### 💬 Comment Routes — `/api/v1/comments`
-### 👍 Like Routes — `/api/v1/likes`
-### 📋 Playlist Routes — `/api/v1/playlist`
-### 🔔 Subscription Routes — `/api/v1/subscriptions`
-### 🐦 Tweet Routes — `/api/v1/tweets`
-### 📊 Dashboard Routes — `/api/v1/dashboard`
-### 🩺 Health Check — `/api/v1/healthcheck`
+### 🎥 Video — `/api/v1/videos`
+### 💬 Comment — `/api/v1/comments`
+### 👍 Like — `/api/v1/likes`
+### 📋 Playlist — `/api/v1/playlist`
+### 🔔 Subscription — `/api/v1/subscriptions`
+### 🐦 Tweet — `/api/v1/tweets`
+### 📊 Dashboard — `/api/v1/dashboard`
+### 🩺 Health Check — `GET /api/v1/healthcheck`
 
 ---
 
 ## 🧪 Testing with Postman
 
-### Register a New User
+### ➕ Register a New User
 
-1. Open **Postman** (web or desktop)
-2. Create a new request:
-   - **Method:** `POST`
-   - **URL:** `http://localhost:8000/api/v1/user/register`
-3. Go to the **Body** tab → select **form-data**
-4. Add the following fields:
+| Field | | |
+|---|---|---|
+| Method | `POST` | |
+| URL | `http://localhost:8000/api/v1/user/register` | |
+| Body | `form-data` | |
 
-| Key        | Type   | Example Value                  |
-|------------|--------|--------------------------------|
-| `fullName` | Text   | `Mohammad Asfin`               |
-| `email`    | Text   | `your@email.com`               |
-| `username` | Text   | `mohammad_asfin`               |
-| `password` | Text   | `your_secure_password`         |
-| `avatar`   | File   | *(Upload a profile image)*     |
+| Key | Type | Example Value |
+|-----|------|---------------|
+| `fullName` | Text | `Mohammad Asfin` |
+| `email` | Text | `asfin@example.com` |
+| `username` | Text | `mohammad_asfin` |
+| `password` | Text | `SecurePass@123` |
+| `avatar` | File | *(select an image file)* |
+| `coverImage` | File | *(optional, select an image)* |
 
-5. Click **Send**
+**Expected response:** `201 Created`
 
-> **Expected Response:** `201 Created` with user data (excluding password).
-
----
-
-## 🛠️ Tech Stack
-
-| Technology                          | Purpose                                              |
-|-------------------------------------|------------------------------------------------------|
-| **Node.js**                         | JavaScript runtime environment                       |
-| **Express.js**                      | Fast, minimalist web framework                       |
-| **MongoDB**                         | NoSQL document database                              |
-| **Mongoose**                        | MongoDB object modeling (ODM)                        |
-| **mongoose-aggregate-paginate-v2**  | Aggregation pipeline pagination plugin               |
-| **JWT (jsonwebtoken)**              | Stateless auth with access & refresh tokens          |
-| **bcrypt**                          | Secure password hashing                              |
-| **Cloudinary**                      | Cloud media upload, transformation & management      |
-| **Multer**                          | Multipart/form-data middleware for file uploads      |
-| **dotenv**                          | Environment variable management                      |
-| **cookie-parser**                   | HTTP cookie parsing middleware                       |
-| **cors**                            | Cross-Origin Resource Sharing middleware             |
-| **nodemon**                         | Dev tool for auto-restarting the server              |
-| **Prettier**                        | Opinionated code formatter                           |
+```json
+{
+  "statusCode": 201,
+  "data": { "username": "mohammad_asfin", "email": "asfin@example.com" },
+  "message": "User registered successfully",
+  "success": true
+}
+```
 
 ---
 
@@ -306,29 +344,73 @@ http://localhost:8000/api/v1
 
 ## 🤝 Contributing
 
-This is not a regular open-source project with general PRs. Contributions require completing **all TODO assignments** in the `controllers/` folder.
+We welcome contributions! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for full guidelines.
 
-1. Fork the repository
-2. Complete **all controllers** with the TODO assignments
-3. Open a [GitHub Issue](https://github.com/Mohammad-Asfin/video-hosting-backend/issues) once all controllers are done
-4. After code review, your repo link will be added to this README
+**Quick steps:**
+
+1. 🍴 Fork the repository
+2. 🌿 Create a branch: `git checkout -b feature/your-feature`
+3. ✅ Complete **all controller TODOs** in `src/controllers/`
+4. 💅 Format code: `npx prettier --write .`
+5. 📬 Open a Pull Request against `main`
+6. 🔍 After review, your repo link gets added to this README
+
+> Open issues at: [GitHub Issues](https://github.com/Mohammad-Asfin/Video-Hosting-Backend-API/issues)
+
+---
+
+## 🛡️ Security
+
+If you discover a **security vulnerability**, please do **NOT** open a public issue.  
+Instead, contact the maintainer directly via GitHub.
+
+- Keep your `.env` file private — **never commit it**
+- Rotate JWT secrets regularly in production
+- Use environment-specific Cloudinary API keys
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**.  
+See the [LICENSE](./LICENSE) file for full details.
+
+```
+MIT License — Copyright (c) 2026 Mohammad Asfin
+```
 
 ---
 
 ## 📎 Useful Links
 
-- 🔗 [ER Diagram (Eraser.io)](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj?origin=share)
-- 🌐 [GitHub Repository](https://github.com/Mohammad-Asfin/video-hosting-backend)
-- ☁️ [Cloudinary Dashboard](https://cloudinary.com/)
-- 🍃 [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+| Resource | Link |
+|----------|------|
+| 🔗 ER Diagram | [Eraser.io Model](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj?origin=share) |
+| 🌐 GitHub Repository | [Video-Hosting-Backend-API](https://github.com/Mohammad-Asfin/Video-Hosting-Backend-API) |
+| 🤝 Contributing Guide | [CONTRIBUTING.md](./CONTRIBUTING.md) |
+| ☁️ Cloudinary | [cloudinary.com](https://cloudinary.com/) |
+| 🍃 MongoDB Atlas | [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas) |
+| 📗 Express Docs | [expressjs.com](https://expressjs.com/) |
+| 🟢 Node.js | [nodejs.org](https://nodejs.org/) |
 
 ---
 
 ## 👨‍💻 Author
 
-**Mohammad Asfin**  
-🔗 [GitHub — Mohammad-Asfin](https://github.com/Mohammad-Asfin)
+<div align="center">
+
+**Mohammad Asfin**
+
+[![GitHub](https://img.shields.io/badge/GitHub-Mohammad--Asfin-181717?style=for-the-badge&logo=github)](https://github.com/Mohammad-Asfin)
+
+</div>
 
 ---
 
-*Built with ❤️ using Node.js, Express & MongoDB*
+<div align="center">
+
+*Built with ❤️ using the MERN Stack — MongoDB · Express · React · Node.js*
+
+⭐ **Star this repo if you found it helpful!**
+
+</div>
