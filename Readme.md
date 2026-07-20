@@ -119,6 +119,25 @@ This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting w
 
 ---
 
+## 🔍 Understanding MongoDB Aggregation Pipelines
+
+In this project, we extensively use **MongoDB Aggregation Pipelines** to perform complex data retrieval and transformation operations directly within the database. 
+
+### What is an Aggregation Pipeline?
+An aggregation pipeline consists of one or more "stages" that process documents. Each stage performs an operation on the input documents (e.g., filtering, grouping, calculating, or joining data) and passes the transformed documents to the next stage. It's highly efficient because the heavy processing happens on the database server rather than in the Node.js backend.
+
+### Key Operators Used in this Project
+Here are some of the most critical aggregation operators (`$`) we utilize, especially in controllers like `getUserChannelProfile` and `getWatchHistory`:
+
+- **`$match`**: Acts like a standard query filter. It filters the document stream to allow only matching documents to pass into the next pipeline stage. We often use this as the very first stage to narrow down the dataset (e.g., finding a user by their `username` or `_id`).
+- **`$lookup`**: Performs a "left outer join" with another collection. This is crucial for a relational-like data structure in NoSQL. For example, when fetching a video, we use `$lookup` to join the `users` collection to get the video owner's avatar and username. We also use it to fetch a channel's subscribers from the `subscriptions` collection.
+- **`$addFields`**: Adds new fields to documents or overwrites existing ones. We use this to compute new properties on the fly. For instance, calculating `subscribersCount` by finding the length of the joined array.
+- **`$size`**: Returns the number of elements in an array. Commonly used alongside `$addFields` to count things like total likes, total videos, or total subscribers.
+- **`$cond`**: A ternary operator that evaluates a boolean condition and returns one of two values depending on the result (if-then-else logic). We use this to determine if the currently logged-in user is subscribed to a channel (e.g., checking if `req.user._id` exists in the subscribers list and returning `true` or `false`).
+- **`$project`**: Reshapes each document in the stream. It can include, exclude, or add new fields. We use `$project` at the end of our pipelines to clean up the data and ensure we only send the necessary fields to the frontend, stripping out unnecessary nested arrays or sensitive data.
+
+---
+
 ## 🛠️ Tech Stack
 
 | Technology | Version | Purpose |
