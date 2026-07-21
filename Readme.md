@@ -366,7 +366,132 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ---
 
-### 3️⃣ Logout User (Clears Tokens)
+### 3️⃣ Get Current User
+
+*   **Method**: `GET`
+*   **URL**: `{{Video Hosting}}/users/current-user`
+*   **Headers**: Requires the user to be logged in (cookies set by login).
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "_id": "6a5cb07f4822053c999663b8",
+        "username": "leviackerman",
+        "email": "levi@aot.com",
+        "fullName": "Levi Ackerman",
+        "avatar": "http://res.cloudinary.com/...",
+        "coverImage": "http://res.cloudinary.com/...",
+        "watchHistory": [],
+        "createdAt": "2026-07-19T11:09:51.446Z",
+        "updatedAt": "2026-07-21T09:09:51.918Z",
+        "__v": 0
+    },
+    "message": "User fetched successfully",
+    "success": true
+}
+```
+
+---
+
+### 4️⃣ Get User Channel Profile
+
+*   **Method**: `GET`
+*   **URL**: `{{Video Hosting}}/users/c/leviackerman`
+*   **Headers**: Requires the user to be logged in (cookies set by login).
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "_id": "6a5cb07f4822053c999663b8",
+        "username": "leviackerman",
+        "email": "levi@aot.com",
+        "fullName": "Levi Ackerman",
+        "avatar": "http://res.cloudinary.com/...",
+        "coverImage": "http://res.cloudinary.com/...",
+        "subscribersCount": 0,
+        "channelsSubscribedToCount": 0,
+        "isSubscribed": false
+    },
+    "message": "User channel fetched successfully",
+    "success": true
+}
+```
+
+---
+
+### 5️⃣ Get Watch History
+
+*   **Method**: `GET`
+*   **URL**: `{{Video Hosting}}/users/history`
+*   **Headers**: Requires the user to be logged in (cookies set by login).
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": [],
+    "message": "Watch history fetched successfully",
+    "success": true
+}
+```
+
+---
+
+### 6️⃣ Change Password
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/users/change-password`
+*   **Headers**: Requires the user to be logged in (cookies set by login).
+*   **Body Type**: `raw` (JSON)
+
+```json
+{
+    "oldPassword": "123456789",
+    "newPassword": "12345678"
+}
+```
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {},
+    "message": "Password changed successfully",
+    "success": true
+}
+```
+
+---
+
+### 7️⃣ Refresh Token
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/users/refresh-token`
+*   **Headers**: Requires the refresh token cookie.
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    },
+    "message": "Access token refreshed",
+    "success": true
+}
+```
+
+---
+
+### 8️⃣ Logout User (Clears Tokens)
 
 *   **Method**: `POST`
 *   **URL**: `{{Video Hosting}}/users/logout`
