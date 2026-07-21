@@ -4,7 +4,7 @@ import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -146,6 +146,10 @@ const updateVideo = asyncHandler(async (req, res) => {
     if (thumbnailLocalPath) {
         const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
         if (thumbnail) {
+            // Delete old thumbnail
+            if (video.thumbnail) {
+                await deleteFromCloudinary(video.thumbnail);
+            }
             video.thumbnail = thumbnail.url;
         }
     }
@@ -170,6 +174,14 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
     if (video.owner.toString() !== req.user?._id.toString()) {
         throw new ApiError(403, "You do not have permission to delete this video");
+    }
+
+    // Delete assets from cloudinary
+    if (video.videoFile) {
+        await deleteFromCloudinary(video.videoFile);
+    }
+    if (video.thumbnail) {
+        await deleteFromCloudinary(video.thumbnail);
     }
 
     await Video.findByIdAndDelete(videoId);

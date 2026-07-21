@@ -309,13 +309,67 @@ http://localhost:8000/api/v1
 | `GET` | `/history` | Get watch history | ✅ |
 
 ### 🎥 Video — `/api/v1/videos`
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|:----:|
+| `GET` | `/` | Get all videos | ❌ |
+| `POST` | `/` | Publish a video | ✅ |
+| `GET` | `/:videoId` | Get video by ID | ✅ |
+| `PATCH` | `/:videoId` | Update video details | ✅ |
+| `DELETE` | `/:videoId` | Delete a video | ✅ |
+| `PATCH` | `/toggle/publish/:videoId` | Toggle publish status | ✅ |
+
 ### 💬 Comment — `/api/v1/comments`
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|:----:|
+| `GET` | `/:videoId` | Get all comments for a video | ✅ |
+| `POST` | `/:videoId` | Add a comment to a video | ✅ |
+| `PATCH` | `/c/:commentId` | Update a comment | ✅ |
+| `DELETE` | `/c/:commentId` | Delete a comment | ✅ |
+
 ### 👍 Like — `/api/v1/likes`
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|:----:|
+| `POST` | `/toggle/v/:videoId` | Toggle like on video | ✅ |
+| `POST` | `/toggle/c/:commentId` | Toggle like on comment | ✅ |
+| `POST` | `/toggle/t/:tweetId` | Toggle like on tweet | ✅ |
+| `GET` | `/videos` | Get all liked videos | ✅ |
+
 ### 📋 Playlist — `/api/v1/playlist`
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|:----:|
+| `POST` | `/` | Create a playlist | ✅ |
+| `GET` | `/user/:userId` | Get user playlists | ✅ |
+| `GET` | `/:playlistId` | Get playlist by ID | ✅ |
+| `PATCH` | `/:playlistId` | Update playlist | ✅ |
+| `DELETE` | `/:playlistId` | Delete playlist | ✅ |
+| `PATCH` | `/add/:videoId/:playlistId` | Add video to playlist | ✅ |
+| `PATCH` | `/remove/:videoId/:playlistId` | Remove video from playlist | ✅ |
+
 ### 🔔 Subscription — `/api/v1/subscriptions`
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|:----:|
+| `POST` | `/c/:channelId` | Toggle subscription | ✅ |
+| `GET` | `/c/:channelId` | Get channel subscribers | ✅ |
+| `GET` | `/u/:subscriberId` | Get subscribed channels | ✅ |
+
 ### 🐦 Tweet — `/api/v1/tweets`
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|:----:|
+| `POST` | `/` | Create tweet | ✅ |
+| `GET` | `/user/:userId` | Get user tweets | ✅ |
+| `PATCH` | `/:tweetId` | Update tweet | ✅ |
+| `DELETE` | `/:tweetId` | Delete tweet | ✅ |
+
 ### 📊 Dashboard — `/api/v1/dashboard`
-### 🩺 Health Check — `GET /api/v1/healthcheck`
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|:----:|
+| `GET` | `/stats` | Get channel stats | ✅ |
+| `GET` | `/videos` | Get channel videos | ✅ |
+
+### 🩺 Health Check — `/api/v1/healthcheck`
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|:----:|
+| `GET` | `/` | Check API health | ❌ |
 
 ---
 
@@ -528,7 +582,7 @@ We welcome contributions! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for f
 
 1. 🍴 Fork the repository
 2. 🌿 Create a branch: `git checkout -b feature/your-feature`
-3. ✅ Complete **all controller TODOs** in `src/controllers/`
+3. ✅ All core **controller TODOs** have been completed! You can add your own features here.
 4. 💅 Format code: `npx prettier --write .`
 5. 📬 Open a Pull Request against `main`
 6. 🔍 After review, your repo link gets added to this README
