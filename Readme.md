@@ -319,7 +319,7 @@ http://localhost:8000/api/v1
 
 ---
 
-## 🧪 Testing with Postman & Data Flow
+## <img src="https://www.vectorlogo.zone/logos/getpostman/getpostman-icon.svg" width="32" height="32" align="center" alt="Postman"> Testing with Postman & Data Flow
 
 This API relies on **MongoDB Atlas** for database storage and **Cloudinary** for media management. Here is a standard flow for testing authentication and media uploads using **Postman**:
 
