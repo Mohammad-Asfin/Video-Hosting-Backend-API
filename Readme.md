@@ -564,6 +564,173 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ---
 
+### 9️⃣ Publish a Video (Cloudinary Upload)
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/videos`
+*   **Headers**: Requires the user to be logged in (cookies set by login).
+*   **Body Type**: `form-data`
+
+| Key | Type | Example Value | Description |
+|-----|------|---------------|-------------|
+| `title` | Text | `My First Vlog` | Video title |
+| `description` | Text | `A day in my life` | Video description |
+| `videoFile` | File | `vlog.mp4` | **Required.** Uploads to Cloudinary. |
+| `thumbnail` | File | `thumbnail.jpg` | **Required.** Uploads to Cloudinary. |
+
+**Expected Response:** `201 Created`
+```json
+{
+    "statusCode": 201,
+    "data": {
+        "videoFile": "http://res.cloudinary.com/...",
+        "thumbnail": "http://res.cloudinary.com/...",
+        "title": "My First Vlog",
+        "description": "A day in my life"
+    },
+    "message": "Video published successfully",
+    "success": true
+}
+```
+
+---
+
+### 🔟 Post a Comment
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/comments/:videoId`
+*   **Headers**: Requires the user to be logged in.
+*   **Body Type**: `raw` (JSON)
+
+```json
+{
+    "content": "This is an amazing video!"
+}
+```
+
+**Expected Response:** `201 Created`
+
+---
+
+### 1️⃣1️⃣ Toggle a Like (Video/Comment/Tweet)
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/likes/toggle/v/:videoId` *(Replace `/v/` with `/c/` or `/t/` for comments/tweets)*
+*   **Headers**: Requires the user to be logged in.
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "liked": true
+    },
+    "message": "Like added to video",
+    "success": true
+}
+```
+
+---
+
+### 1️⃣2️⃣ Create a Playlist
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/playlist`
+*   **Headers**: Requires the user to be logged in.
+*   **Body Type**: `raw` (JSON)
+
+```json
+{
+    "name": "React Tutorials",
+    "description": "Best tutorials to learn React.js"
+}
+```
+
+**Expected Response:** `201 Created`
+
+---
+
+### 1️⃣3️⃣ Toggle Channel Subscription
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/subscriptions/c/:channelId`
+*   **Headers**: Requires the user to be logged in.
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "subscribed": true
+    },
+    "message": "Subscribed successfully",
+    "success": true
+}
+```
+
+---
+
+### 1️⃣4️⃣ Create a Tweet
+
+*   **Method**: `POST`
+*   **URL**: `{{Video Hosting}}/tweets`
+*   **Headers**: Requires the user to be logged in.
+*   **Body Type**: `raw` (JSON)
+
+```json
+{
+    "content": "Just launched my new channel!"
+}
+```
+
+**Expected Response:** `201 Created`
+
+---
+
+### 1️⃣5️⃣ Get Channel Dashboard Stats
+
+*   **Method**: `GET`
+*   **URL**: `{{Video Hosting}}/dashboard/stats`
+*   **Headers**: Requires the user to be logged in.
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "totalSubscribers": 1500,
+        "totalVideos": 25,
+        "totalViews": 50000,
+        "totalLikes": 1200
+    },
+    "message": "Channel stats fetched successfully",
+    "success": true
+}
+```
+
+---
+
+### 1️⃣6️⃣ API Health Check
+
+*   **Method**: `GET`
+*   **URL**: `{{Video Hosting}}/healthcheck`
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {},
+    "message": "OK",
+    "success": true
+}
+```
+
+---
+
 ## 📄 npm Scripts
 
 ```json
