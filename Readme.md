@@ -731,6 +731,172 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ---
 
+### 1️⃣7️⃣ Fetching All Videos (Home Feed)
+
+*   **Method**: `GET`
+*   **URL**: `{{Video Hosting}}/videos?page=1&limit=10&sortBy=createdAt&sortType=desc`
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "docs": [
+            {
+                "_id": "6a604e404b74605254976f7d",
+                "videoFile": "http://res.cloudinary.com/...",
+                "thumbnail": "http://res.cloudinary.com/...",
+                "title": "My First Vlog",
+                "description": "A day in my life",
+                "duration": 19.64,
+                "views": 0,
+                "isPublished": true,
+                "owner": {
+                    "_id": "6a5cb07f4822053c999663b8",
+                    "username": "leviackerman",
+                    "avatar": "http://res.cloudinary.com/..."
+                }
+            }
+        ],
+        "totalDocs": 1,
+        "limit": 10,
+        "page": 1,
+        "totalPages": 1,
+        "pagingCounter": 1,
+        "hasPrevPage": false,
+        "hasNextPage": false,
+        "prevPage": null,
+        "nextPage": null
+    },
+    "message": "Videos fetched successfully",
+    "success": true
+}
+```
+
+---
+
+### 1️⃣8️⃣ Watching a Video (Fetch by ID)
+
+*   **Method**: `GET`
+*   **URL**: `{{Video Hosting}}/videos/:videoId`
+*   **Headers**: Requires the user to be logged in (to add to history).
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "_id": "6a604e404b74605254976f7d",
+        "videoFile": "http://res.cloudinary.com/...",
+        "thumbnail": "http://res.cloudinary.com/...",
+        "title": "My First Vlog",
+        "description": "A day in my life",
+        "duration": 19.64,
+        "views": 1,
+        "isPublished": true,
+        "owner": {
+            "_id": "6a5cb07f4822053c999663b8",
+            "username": "leviackerman",
+            "avatar": "http://res.cloudinary.com/..."
+        },
+        "likesCount": 10,
+        "isLiked": true
+    },
+    "message": "Video fetched successfully",
+    "success": true
+}
+```
+
+---
+
+### 1️⃣9️⃣ Updating User Avatar
+
+*   **Method**: `PATCH`
+*   **URL**: `{{Video Hosting}}/users/avatar`
+*   **Headers**: Requires the user to be logged in.
+*   **Body Type**: `form-data`
+
+| Key | Type | Example Value | Description |
+|-----|------|---------------|-------------|
+| `avatar` | File | `new_avatar.jpg` | **Required.** Uploads to Cloudinary. |
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "_id": "6a5cb07f4822053c999663b8",
+        "username": "leviackerman",
+        "avatar": "http://res.cloudinary.com/.../new_avatar.jpg",
+        "coverImage": "http://res.cloudinary.com/..."
+    },
+    "message": "Avatar image updated successfully",
+    "success": true
+}
+```
+
+---
+
+### 2️⃣0️⃣ Adding a Video to a Playlist
+
+*   **Method**: `PATCH`
+*   **URL**: `{{Video Hosting}}/playlist/add/:videoId/:playlistId`
+*   **Headers**: Requires the user to be logged in.
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": {
+        "_id": "6a6053954b74605254976f8e",
+        "name": "React Tutorials",
+        "videos": ["6a604e404b74605254976f7d"]
+    },
+    "message": "Video added to playlist successfully",
+    "success": true
+}
+```
+
+---
+
+### 2️⃣1️⃣ Getting Liked Videos
+
+*   **Method**: `GET`
+*   **URL**: `{{Video Hosting}}/likes/videos`
+*   **Headers**: Requires the user to be logged in.
+*   **Body**: None
+
+**Expected Response:** `200 OK`
+```json
+{
+    "statusCode": 200,
+    "data": [
+        {
+            "_id": "6a6057c74b74605254976f9d",
+            "video": {
+                "_id": "6a604e404b74605254976f7d",
+                "videoFile": "http://res.cloudinary.com/...",
+                "thumbnail": "http://res.cloudinary.com/...",
+                "title": "My First Vlog",
+                "duration": 19.64,
+                "views": 1,
+                "ownerDetails": {
+                    "username": "leviackerman",
+                    "avatar": "http://res.cloudinary.com/..."
+                }
+            }
+        }
+    ],
+    "message": "Liked videos fetched successfully",
+    "success": true
+}
+```
+
+---
+
 ## 📄 npm Scripts
 
 ```json
