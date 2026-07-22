@@ -51,7 +51,6 @@ This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting w
 - 🛡️ **Report System** — Flag inappropriate content (videos, comments, tweets, or users)
 - 🩺 **Health Check** — `/healthcheck` endpoint for uptime monitoring
 - 🚀 **Rate Limiting** — DDoS protection & spam prevention for endpoints
-- 🧼 **Automated Content Moderation** — Profanity filtering for posts & comments
 - 🌐 **CORS** — Fully configurable cross-origin resource sharing
 - 📄 **Pagination** — MongoDB aggregation pipeline pagination
 - 🧹 **Code Quality** — Prettier enforced across the codebase
@@ -81,7 +80,6 @@ This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting w
 │   │   └── index.js              # MongoDB connection setup
 │   ├── 📁 middlewares/
 │   │   ├── auth.middleware.js    # JWT verification middleware
-│   │   ├── moderation.js         # Content moderation (profanity check)
 │   │   ├── multer.middleware.js  # File upload middleware
 │   │   └── rateLimiter.js        # API rate-limiting middleware
 │   ├── 📁 models/                # Mongoose schemas & models
@@ -168,7 +166,6 @@ Here are some of the most critical aggregation operators (`$`) we utilize, espec
 | **jsonwebtoken**                   | ^9.x    | JWT access & refresh tokens         |
 | **bcrypt**                         | ^5.x    | Secure password hashing             |
 | **express-rate-limit**             | ^8.x    | API rate limiting / DDoS protection |
-| **bad-words**                      | ^4.x    | Automated content moderation        |
 | **Cloudinary**                     | ^1.x    | Cloud media upload & management     |
 | **Multer**                         | ^1.x    | Multipart file upload middleware    |
 | **dotenv**                         | ^16.x   | Environment variable loader         |
@@ -247,9 +244,6 @@ npm i socket.io
 
 # Basic rate-limiting middleware for Express
 npm i express-rate-limit
-
-# Profanity detection and content moderation filter
-npm i bad-words
 ```
 
 **Or install everything at once:**
