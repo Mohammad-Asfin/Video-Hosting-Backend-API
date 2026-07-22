@@ -6,6 +6,8 @@ import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
+import {extractChapters} from "../utils/chapters.js"
+import {algoliaService} from "../utils/algolia.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -95,7 +97,11 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Thumbnail is required");
     }
 
-    const video = await uploadOnCloudinary(videoFileLocalPath);
+    const video = await uploadOnCloudinary(videoFileLocalPath, {
+        eager: [
+            { streaming_profile: "hd", format: "m3u8" }
+        ]
+    });
     const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
 
     if (!video) {
@@ -106,9 +112,14 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to upload thumbnail");
     }
 
+    const hlsUrl = video.eager && video.eager.length > 0 ? video.eager[0].secure_url : video.url.replace(/\.mp4$/, '.m3u8');
+    const chapters = extractChapters(description);
+
     const newVideo = await Video.create({
         videoFile: video.url,
+        hlsUrl,
         thumbnail: thumbnail.url,
+        chapters,
         title,
         description,
         duration: video.duration || 0,
@@ -116,6 +127,9 @@ const publishAVideo = asyncHandler(async (req, res) => {
         category: category || "Entertainment",
         tags: tags ? (Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map(t=>t.trim()) : [])) : []
     });
+
+    // Sync with Algolia search index
+    algoliaService.addVideo(newVideo);
 
     return res.status(201).json(new ApiResponse(201, newVideo, "Video published successfully"));
 })
@@ -166,7 +180,10 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
 
     if (title) video.title = title;
-    if (description) video.description = description;
+    if (description) {
+        video.description = description;
+        video.chapters = extractChapters(description);
+    }
 
     const thumbnailLocalPath = req.file?.path;
 
@@ -182,6 +199,8 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
 
     await video.save();
+
+    algoliaService.updateVideo(video);
 
     return res.status(200).json(new ApiResponse(200, video, "Video updated successfully"));
 })
@@ -212,6 +231,8 @@ const deleteVideo = asyncHandler(async (req, res) => {
     }
 
     await Video.findByIdAndDelete(videoId);
+
+    algoliaService.deleteVideo(videoId);
 
     return res.status(200).json(new ApiResponse(200, {}, "Video deleted successfully"));
 })

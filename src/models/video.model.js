@@ -7,10 +7,17 @@ const videoSchema = new Schema(
             type: String, //cloudinary url
             required: true
         },
+        hlsUrl: {
+            type: String // m3u8 url
+        },
         thumbnail: {
             type: String, //cloudinary url
             required: true
         },
+        chapters: [{
+            timestamp: String,
+            title: String
+        }],
         title: {
             type: String, 
             required: true

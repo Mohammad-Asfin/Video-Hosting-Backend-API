@@ -5,6 +5,7 @@ import { Notification } from "../models/notification.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
+import {emitToUser} from "../socket.js"
 
 
 const toggleSubscription = asyncHandler(async (req, res) => {
@@ -31,11 +32,12 @@ const toggleSubscription = asyncHandler(async (req, res) => {
         });
 
         if (channelId.toString() !== subscriberId.toString()) {
-            await Notification.create({
+            const notification = await Notification.create({
                 recipient: channelId,
                 sender: subscriberId,
                 type: 'SUBSCRIBE'
             });
+            emitToUser(channelId, "new_notification", notification);
         }
 
         return res.status(200).json(new ApiResponse(200, { subscribed: true }, "Subscribed successfully"));

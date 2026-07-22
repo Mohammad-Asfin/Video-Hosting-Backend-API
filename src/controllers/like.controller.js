@@ -7,6 +7,7 @@ import {Tweet} from "../models/tweet.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
+import {emitToUser} from "../socket.js"
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const {videoId} = req.params;
@@ -25,12 +26,13 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
         
         const video = await Video.findById(videoId).select("owner");
         if (video && video.owner.toString() !== req.user?._id.toString()) {
-            await Notification.create({
+            const notification = await Notification.create({
                 recipient: video.owner,
                 sender: req.user?._id,
                 type: 'LIKE',
                 video: videoId
             });
+            emitToUser(video.owner, "new_notification", notification);
         }
         
         return res.status(200).json(new ApiResponse(200, { liked: true }, "Like added to video"));
@@ -54,12 +56,13 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
         const comment = await Comment.findById(commentId).select("owner");
         if (comment && comment.owner.toString() !== req.user?._id.toString()) {
-            await Notification.create({
+            const notification = await Notification.create({
                 recipient: comment.owner,
                 sender: req.user?._id,
                 type: 'LIKE',
                 comment: commentId
             });
+            emitToUser(comment.owner, "new_notification", notification);
         }
 
         return res.status(200).json(new ApiResponse(200, { liked: true }, "Like added to comment"));
@@ -83,12 +86,13 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 
         const tweet = await Tweet.findById(tweetId).select("owner");
         if (tweet && tweet.owner.toString() !== req.user?._id.toString()) {
-            await Notification.create({
+            const notification = await Notification.create({
                 recipient: tweet.owner,
                 sender: req.user?._id,
                 type: 'LIKE',
                 tweet: tweetId
             });
+            emitToUser(tweet.owner, "new_notification", notification);
         }
 
         return res.status(200).json(new ApiResponse(200, { liked: true }, "Like added to tweet"));

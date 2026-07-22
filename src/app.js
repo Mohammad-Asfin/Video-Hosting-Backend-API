@@ -14,6 +14,9 @@ app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
+import { globalLimiter } from "./middlewares/rateLimiter.js"
+app.use(globalLimiter);
+
 
 //routes import
 import userRouter from './routes/user.routes.js'

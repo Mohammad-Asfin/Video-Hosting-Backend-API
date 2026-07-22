@@ -5,6 +5,7 @@ import {Notification} from "../models/notification.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
+import {emitToUser} from "../socket.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
     const {videoId} = req.params;
@@ -14,7 +15,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid video id");
     }
 
-    const comments = await Comment.find({ video: videoId })
+    const comments = await Comment.find({ video: videoId, parentComment: null })
         .sort({ createdAt: -1 })
         .skip((parseInt(page) - 1) * parseInt(limit))
         .limit(parseInt(limit))
@@ -25,7 +26,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
 const addComment = asyncHandler(async (req, res) => {
     const {videoId} = req.params;
-    const {content} = req.body;
+    const {content, parentComment} = req.body;
 
     if (!mongoose.isValidObjectId(videoId)) {
         throw new ApiError(400, "Invalid video id");
@@ -38,18 +39,20 @@ const addComment = asyncHandler(async (req, res) => {
     const comment = await Comment.create({
         content,
         video: videoId,
-        owner: req.user?._id
+        owner: req.user?._id,
+        parentComment: parentComment || null
     });
 
     const video = await Video.findById(videoId).select("owner");
     if (video && video.owner.toString() !== req.user?._id.toString()) {
-        await Notification.create({
+        const notification = await Notification.create({
             recipient: video.owner,
             sender: req.user?._id,
             type: 'COMMENT',
             video: videoId,
             comment: comment._id
         });
+        emitToUser(video.owner, "new_notification", notification);
     }
 
     return res.status(201).json(new ApiResponse(201, comment, "Comment added successfully"));
@@ -105,9 +108,27 @@ const deleteComment = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, {}, "Comment deleted successfully"));
 })
 
+const getCommentReplies = asyncHandler(async (req, res) => {
+    const {commentId} = req.params;
+    const {page = 1, limit = 10} = req.query;
+
+    if (!mongoose.isValidObjectId(commentId)) {
+        throw new ApiError(400, "Invalid comment id");
+    }
+
+    const replies = await Comment.find({ parentComment: commentId })
+        .sort({ createdAt: 1 })
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .limit(parseInt(limit))
+        .populate("owner", "fullName username avatar");
+
+    return res.status(200).json(new ApiResponse(200, replies, "Replies fetched successfully"));
+})
+
 export {
     getVideoComments, 
     addComment, 
     updateComment,
-     deleteComment
-    }
+    deleteComment,
+    getCommentReplies
+}
