@@ -26,12 +26,13 @@
 This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting web application — similar to YouTube. It exposes a complete REST API consumed by a React frontend, handling everything from user authentication to video streaming metadata, social interactions, and cloud media management.
 
 > 🧩 **MERN Stack Breakdown:**
-> | Layer | Technology | Role |
-> |-------|-----------|------|
-> | **M** | MongoDB + Mongoose | Database & ODM |
-> | **E** | Express.js | REST API Framework |
-> | **R** | React.js *(Frontend — separate repo)* | Client-side UI |
-> | **N** | Node.js | JavaScript Runtime |
+>
+> | Layer | Technology                            | Role               |
+> | ----- | ------------------------------------- | ------------------ |
+> | **M** | MongoDB + Mongoose                    | Database & ODM     |
+> | **E** | Express.js                            | REST API Framework |
+> | **R** | React.js _(Frontend — separate repo)_ | Client-side UI     |
+> | **N** | Node.js                               | JavaScript Runtime |
 
 ---
 
@@ -40,13 +41,17 @@ This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting w
 - 🔐 **JWT Authentication** — Stateless access & refresh token strategy
 - 🔑 **Password Security** — bcrypt hashing (never stored as plain text)
 - 📹 **Video Uploads** — Cloud media handling via Cloudinary + Multer
-- 💬 **Comments & Replies** — Nested comment system
+- 💬 **Threaded Comments** — Nested reply system for video comments
 - 👍 **Likes / Dislikes** — On videos, comments, and tweets
 - 📋 **Playlists** — Create, update, and manage video playlists
 - 🔔 **Subscriptions** — Channel subscribe / unsubscribe with counts
 - 📊 **Dashboard** — Channel analytics (views, subscribers, videos, likes)
-- 🐦 **Tweets** — Short-form text posts per user
+- 🐦 **Tweets & Polls** — Short-form posts with optional images or interactive polls
+- 🔔 **Real-Time Notifications** — Event-driven user alerts powered by Socket.io
+- 🛡️ **Report System** — Flag inappropriate content (videos, comments, tweets, or users)
 - 🩺 **Health Check** — `/healthcheck` endpoint for uptime monitoring
+- 🚀 **Rate Limiting** — DDoS protection & spam prevention for endpoints
+- 🧼 **Automated Content Moderation** — Profanity filtering for posts & comments
 - 🌐 **CORS** — Fully configurable cross-origin resource sharing
 - 📄 **Pagination** — MongoDB aggregation pipeline pagination
 - 🧹 **Code Quality** — Prettier enforced across the codebase
@@ -65,7 +70,9 @@ This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting w
 │   │   ├── dashboard.controller.js
 │   │   ├── healthcheck.controller.js
 │   │   ├── like.controller.js
+│   │   ├── notification.controller.js
 │   │   ├── playlist.controller.js
+│   │   ├── report.controller.js
 │   │   ├── subscription.controller.js
 │   │   ├── tweet.controller.js
 │   │   ├── user.controller.js
@@ -74,21 +81,28 @@ This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting w
 │   │   └── index.js              # MongoDB connection setup
 │   ├── 📁 middlewares/
 │   │   ├── auth.middleware.js    # JWT verification middleware
-│   │   └── multer.middleware.js  # File upload middleware
+│   │   ├── moderation.js         # Content moderation (profanity check)
+│   │   ├── multer.middleware.js  # File upload middleware
+│   │   └── rateLimiter.js        # API rate-limiting middleware
 │   ├── 📁 models/                # Mongoose schemas & models
 │   │   ├── comment.model.js
 │   │   ├── like.model.js
+│   │   ├── notification.model.js
 │   │   ├── playlist.model.js
+│   │   ├── report.model.js
 │   │   ├── subscription.model.js
 │   │   ├── tweet.model.js
 │   │   ├── user.model.js
-│   │   └── video.model.js
+│   │   ├── video.model.js
+│   │   └── view.model.js
 │   ├── 📁 routes/                # Express route definitions
 │   │   ├── comment.routes.js
 │   │   ├── dashboard.routes.js
 │   │   ├── healthcheck.routes.js
 │   │   ├── like.routes.js
+│   │   ├── notification.routes.js
 │   │   ├── playlist.routes.js
+│   │   ├── report.routes.js
 │   │   ├── subscription.routes.js
 │   │   ├── tweet.routes.js
 │   │   ├── user.routes.js
@@ -100,7 +114,8 @@ This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting w
 │   │   └── cloudinary.js         # Cloudinary upload helper
 │   ├── app.js                    # Express app & middleware setup
 │   ├── constants.js              # App-wide constants (DB name, etc.)
-│   └── index.js                  # Server entry point
+│   ├── index.js                  # Server entry point
+│   └── socket.js                 # Real-time WebSocket connection setup
 ├── .env.sample                   # Environment variable template
 ├── .gitignore
 ├── .prettierrc
@@ -121,12 +136,14 @@ This is the **backend (M·E·N layer)** of a full-stack **MERN** video hosting w
 
 ## 🔍 Understanding MongoDB Aggregation Pipelines
 
-In this project, we extensively use **MongoDB Aggregation Pipelines** to perform complex data retrieval and transformation operations directly within the database. 
+In this project, we extensively use **MongoDB Aggregation Pipelines** to perform complex data retrieval and transformation operations directly within the database.
 
 ### What is an Aggregation Pipeline?
+
 An aggregation pipeline consists of one or more "stages" that process documents. Each stage performs an operation on the input documents (e.g., filtering, grouping, calculating, or joining data) and passes the transformed documents to the next stage. It's highly efficient because the heavy processing happens on the database server rather than in the Node.js backend.
 
 ### Key Operators Used in this Project
+
 Here are some of the most critical aggregation operators (`$`) we utilize, especially in controllers like `getUserChannelProfile` and `getWatchHistory`:
 
 - **`$match`**: Acts like a standard query filter. It filters the document stream to allow only matching documents to pass into the next pipeline stage. We often use this as the very first stage to narrow down the dataset (e.g., finding a user by their `username` or `_id`).
@@ -140,22 +157,25 @@ Here are some of the most critical aggregation operators (`$`) we utilize, espec
 
 ## 🛠️ Tech Stack
 
-| Technology | Version | Purpose |
-|---|---|---|
-| **Node.js** | 18+ | JavaScript runtime |
-| **Express.js** | ^4.x | REST API framework |
-| **MongoDB** | Atlas | NoSQL document database |
-| **Mongoose** | ^8.x | MongoDB ODM |
-| **mongoose-aggregate-paginate-v2** | ^1.x | Aggregation pagination plugin |
-| **jsonwebtoken** | ^9.x | JWT access & refresh tokens |
-| **bcrypt** | ^5.x | Secure password hashing |
-| **Cloudinary** | ^1.x | Cloud media upload & management |
-| **Multer** | ^1.x | Multipart file upload middleware |
-| **dotenv** | ^16.x | Environment variable loader |
-| **cookie-parser** | ^1.x | HTTP cookie parsing |
-| **cors** | ^2.x | Cross-Origin Resource Sharing |
-| **nodemon** *(dev)* | ^3.x | Auto-restart on file changes |
-| **Prettier** *(dev)* | ^3.x | Opinionated code formatter |
+| Technology                         | Version | Purpose                             |
+| ---------------------------------- | ------- | ----------------------------------- |
+| **Node.js**                        | 18+     | JavaScript runtime                  |
+| **Express.js**                     | ^4.x    | REST API framework                  |
+| **Socket.io**                      | ^4.x    | Real-time WebSocket connection      |
+| **MongoDB**                        | Atlas   | NoSQL document database             |
+| **Mongoose**                       | ^8.x    | MongoDB ODM                         |
+| **mongoose-aggregate-paginate-v2** | ^1.x    | Aggregation pagination plugin       |
+| **jsonwebtoken**                   | ^9.x    | JWT access & refresh tokens         |
+| **bcrypt**                         | ^5.x    | Secure password hashing             |
+| **express-rate-limit**             | ^8.x    | API rate limiting / DDoS protection |
+| **bad-words**                      | ^4.x    | Automated content moderation        |
+| **Cloudinary**                     | ^1.x    | Cloud media upload & management     |
+| **Multer**                         | ^1.x    | Multipart file upload middleware    |
+| **dotenv**                         | ^16.x   | Environment variable loader         |
+| **cookie-parser**                  | ^1.x    | HTTP cookie parsing                 |
+| **cors**                           | ^2.x    | Cross-Origin Resource Sharing       |
+| **nodemon** _(dev)_                | ^3.x    | Auto-restart on file changes        |
+| **Prettier** _(dev)_               | ^3.x    | Opinionated code formatter          |
 
 ---
 
@@ -221,6 +241,15 @@ npm i cloudinary
 
 # Multipart/form-data middleware (file uploads)
 npm i multer
+
+# Real-time WebSocket support for Node.js
+npm i socket.io
+
+# Basic rate-limiting middleware for Express
+npm i express-rate-limit
+
+# Profanity detection and content moderation filter
+npm i bad-words
 ```
 
 **Or install everything at once:**
@@ -268,6 +297,7 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 Run this command **twice** — use one output for `ACCESS_TOKEN_SECRET` and a different one for `REFRESH_TOKEN_SECRET`.
 
 > ⚠️ **Security Rules:**
+>
 > - Never use the same secret for both tokens
 > - Use at least 64 random bytes (128 hex characters)
 > - **NEVER commit `.env` to GitHub** — it's already in `.gitignore`
@@ -288,88 +318,114 @@ Server running at → **`http://localhost:8000`**
 ## 📬 API Endpoints
 
 ### Base URL
+
 ```
 http://localhost:8000/api/v1
 ```
 
-### 👤 User — `/api/v1/user`
+### 👤 User — `/api/v1/users`
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| `POST` | `/register` | Register a new user | ❌ |
-| `POST` | `/login` | Login & receive tokens | ❌ |
-| `POST` | `/logout` | Logout current user | ✅ |
-| `POST` | `/refresh-token` | Refresh access token | ❌ |
-| `PATCH` | `/change-password` | Change current password | ✅ |
-| `GET` | `/current-user` | Get logged-in user profile | ✅ |
-| `PATCH` | `/update-account` | Update name & email | ✅ |
-| `PATCH` | `/avatar` | Upload new avatar | ✅ |
-| `PATCH` | `/cover-image` | Upload new cover image | ✅ |
-| `GET` | `/c/:username` | Get channel profile | ✅ |
-| `GET` | `/history` | Get watch history | ✅ |
+| Method  | Endpoint           | Description                | Auth |
+| ------- | ------------------ | -------------------------- | :--: |
+| `POST`  | `/register`        | Register a new user        |  ❌  |
+| `POST`  | `/login`           | Login & receive tokens     |  ❌  |
+| `POST`  | `/logout`          | Logout current user        |  ✅  |
+| `POST`  | `/refresh-token`   | Refresh access token       |  ❌  |
+| `PATCH` | `/change-password` | Change current password    |  ✅  |
+| `GET`   | `/current-user`    | Get logged-in user profile |  ✅  |
+| `PATCH` | `/update-account`  | Update name & email        |  ✅  |
+| `PATCH` | `/avatar`          | Upload new avatar          |  ✅  |
+| `PATCH` | `/cover-image`     | Upload new cover image     |  ✅  |
+| `GET`   | `/c/:username`     | Get channel profile        |  ✅  |
+| `GET`   | `/history`         | Get watch history          |  ✅  |
 
 ### 🎥 Video — `/api/v1/videos`
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| `GET` | `/` | Get all videos | ❌ |
-| `POST` | `/` | Publish a video | ✅ |
-| `GET` | `/:videoId` | Get video by ID | ✅ |
-| `PATCH` | `/:videoId` | Update video details | ✅ |
-| `DELETE` | `/:videoId` | Delete a video | ✅ |
-| `PATCH` | `/toggle/publish/:videoId` | Toggle publish status | ✅ |
+
+| Method   | Endpoint                   | Description           | Auth |
+| -------- | -------------------------- | --------------------- | :--: |
+| `GET`    | `/`                        | Get all videos        |  ❌  |
+| `POST`   | `/`                        | Publish a video       |  ✅  |
+| `GET`    | `/:videoId`                | Get video by ID       |  ✅  |
+| `PATCH`  | `/:videoId`                | Update video details  |  ✅  |
+| `DELETE` | `/:videoId`                | Delete a video        |  ✅  |
+| `PATCH`  | `/toggle/publish/:videoId` | Toggle publish status |  ✅  |
 
 ### 💬 Comment — `/api/v1/comments`
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| `GET` | `/:videoId` | Get all comments for a video | ✅ |
-| `POST` | `/:videoId` | Add a comment to a video | ✅ |
-| `PATCH` | `/c/:commentId` | Update a comment | ✅ |
-| `DELETE` | `/c/:commentId` | Delete a comment | ✅ |
+
+| Method   | Endpoint                | Description                                                      | Auth |
+| -------- | ----------------------- | ---------------------------------------------------------------- | :--: |
+| `GET`    | `/:videoId`             | Get all comments for a video                                     |  ✅  |
+| `POST`   | `/:videoId`             | Add a comment to a video (supports rate limit & profanity check) |  ✅  |
+| `PATCH`  | `/c/:commentId`         | Update a comment (supports profanity check)                      |  ✅  |
+| `DELETE` | `/c/:commentId`         | Delete a comment                                                 |  ✅  |
+| `GET`    | `/c/:commentId/replies` | Get nested replies for a comment                                 |  ✅  |
 
 ### 👍 Like — `/api/v1/likes`
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| `POST` | `/toggle/v/:videoId` | Toggle like on video | ✅ |
-| `POST` | `/toggle/c/:commentId` | Toggle like on comment | ✅ |
-| `POST` | `/toggle/t/:tweetId` | Toggle like on tweet | ✅ |
-| `GET` | `/videos` | Get all liked videos | ✅ |
+
+| Method | Endpoint               | Description            | Auth |
+| ------ | ---------------------- | ---------------------- | :--: |
+| `POST` | `/toggle/v/:videoId`   | Toggle like on video   |  ✅  |
+| `POST` | `/toggle/c/:commentId` | Toggle like on comment |  ✅  |
+| `POST` | `/toggle/t/:tweetId`   | Toggle like on tweet   |  ✅  |
+| `GET`  | `/videos`              | Get all liked videos   |  ✅  |
 
 ### 📋 Playlist — `/api/v1/playlist`
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| `POST` | `/` | Create a playlist | ✅ |
-| `GET` | `/user/:userId` | Get user playlists | ✅ |
-| `GET` | `/:playlistId` | Get playlist by ID | ✅ |
-| `PATCH` | `/:playlistId` | Update playlist | ✅ |
-| `DELETE` | `/:playlistId` | Delete playlist | ✅ |
-| `PATCH` | `/add/:videoId/:playlistId` | Add video to playlist | ✅ |
-| `PATCH` | `/remove/:videoId/:playlistId` | Remove video from playlist | ✅ |
+
+| Method   | Endpoint                       | Description                | Auth |
+| -------- | ------------------------------ | -------------------------- | :--: |
+| `POST`   | `/`                            | Create a playlist          |  ✅  |
+| `GET`    | `/user/:userId`                | Get user playlists         |  ✅  |
+| `GET`    | `/:playlistId`                 | Get playlist by ID         |  ✅  |
+| `PATCH`  | `/:playlistId`                 | Update playlist            |  ✅  |
+| `DELETE` | `/:playlistId`                 | Delete playlist            |  ✅  |
+| `PATCH`  | `/add/:videoId/:playlistId`    | Add video to playlist      |  ✅  |
+| `PATCH`  | `/remove/:videoId/:playlistId` | Remove video from playlist |  ✅  |
 
 ### 🔔 Subscription — `/api/v1/subscriptions`
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| `POST` | `/c/:channelId` | Toggle subscription | ✅ |
-| `GET` | `/c/:channelId` | Get channel subscribers | ✅ |
-| `GET` | `/u/:subscriberId` | Get subscribed channels | ✅ |
+
+| Method | Endpoint           | Description             | Auth |
+| ------ | ------------------ | ----------------------- | :--: |
+| `POST` | `/c/:channelId`    | Toggle subscription     |  ✅  |
+| `GET`  | `/c/:channelId`    | Get channel subscribers |  ✅  |
+| `GET`  | `/u/:subscriberId` | Get subscribed channels |  ✅  |
 
 ### 🐦 Tweet — `/api/v1/tweets`
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| `POST` | `/` | Create tweet | ✅ |
-| `GET` | `/user/:userId` | Get user tweets | ✅ |
-| `PATCH` | `/:tweetId` | Update tweet | ✅ |
-| `DELETE` | `/:tweetId` | Delete tweet | ✅ |
+
+| Method   | Endpoint         | Description                                                              | Auth |
+| -------- | ---------------- | ------------------------------------------------------------------------ | :--: |
+| `POST`   | `/`              | Create tweet (supports content + optional image + optional poll options) |  ✅  |
+| `GET`    | `/user/:userId`  | Get user tweets                                                          |  ✅  |
+| `PATCH`  | `/:tweetId`      | Update tweet (supports profanity check)                                  |  ✅  |
+| `DELETE` | `/:tweetId`      | Delete tweet                                                             |  ✅  |
+| `PATCH`  | `/:tweetId/vote` | Vote on a poll option                                                    |  ✅  |
+
+### 🔔 Notification — `/api/v1/notifications`
+
+| Method  | Endpoint                | Description                              | Auth |
+| ------- | ----------------------- | ---------------------------------------- | :--: |
+| `GET`   | `/`                     | Get all notifications for logged-in user |  ✅  |
+| `PATCH` | `/:notificationId/read` | Mark a notification as read              |  ✅  |
+
+### 🚩 Report — `/api/v1/reports`
+
+| Method  | Endpoint     | Description                            | Auth |
+| ------- | ------------ | -------------------------------------- | :--: |
+| `POST`  | `/`          | Create/submit a content report         |  ✅  |
+| `GET`   | `/`          | Get all reports (Admin/Moderator view) |  ✅  |
+| `PATCH` | `/:reportId` | Resolve or dismiss a report            |  ✅  |
 
 ### 📊 Dashboard — `/api/v1/dashboard`
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| `GET` | `/stats` | Get channel stats | ✅ |
-| `GET` | `/videos` | Get channel videos | ✅ |
+
+| Method | Endpoint  | Description        | Auth |
+| ------ | --------- | ------------------ | :--: |
+| `GET`  | `/stats`  | Get channel stats  |  ✅  |
+| `GET`  | `/videos` | Get channel videos |  ✅  |
 
 ### 🩺 Health Check — `/api/v1/healthcheck`
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|:----:|
-| `GET` | `/` | Check API health | ❌ |
+
+| Method | Endpoint | Description      | Auth |
+| ------ | -------- | ---------------- | :--: |
+| `GET`  | `/`      | Check API health |  ❌  |
 
 ---
 
@@ -381,22 +437,23 @@ This API relies on **MongoDB Atlas** for database storage and **Cloudinary** for
 
 ### 1️⃣ Register a New User (Uploads to Cloudinary & MongoDB)
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/users/register`
-*   **Body Type**: `form-data`
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/users/register`
+- **Body Type**: `form-data`
 
-| Key | Type | Example Value | Description |
-|-----|------|---------------|-------------|
-| `fullName` | Text | `Levi Ackerman` | User's full name |
-| `username` | Text | `leviackerman` | Unique username |
-| `email` | Text | `levi@aot.com` | User's email |
-| `password` | Text | `12345678` | Secure password |
-| `avatar` | File | `Levi.jpg` | **Required.** Uploads to Cloudinary. |
+| Key          | Type | Example Value   | Description                          |
+| ------------ | ---- | --------------- | ------------------------------------ |
+| `fullName`   | Text | `Levi Ackerman` | User's full name                     |
+| `username`   | Text | `leviackerman`  | Unique username                      |
+| `email`      | Text | `levi@aot.com`  | User's email                         |
+| `password`   | Text | `12345678`      | Secure password                      |
+| `avatar`     | File | `Levi.jpg`      | **Required.** Uploads to Cloudinary. |
 | `coverImage` | File | `AOT cover.jpg` | **Optional.** Uploads to Cloudinary. |
 
 > 🔄 **Data Flow:**
-> *   **Cloudinary:** The `avatar` and `coverImage` files are processed by Multer and successfully uploaded to your Cloudinary Media Library. The secure URLs are returned.
-> *   **MongoDB Atlas:** A new document is created in the `users` collection within your `videotube` database, securely storing the hashed password and the Cloudinary image URLs.
+>
+> - **Cloudinary:** The `avatar` and `coverImage` files are processed by Multer and successfully uploaded to your Cloudinary Media Library. The secure URLs are returned.
+> - **MongoDB Atlas:** A new document is created in the `users` collection within your `videotube` database, securely storing the hashed password and the Cloudinary image URLs.
 
 **Expected response:** `201 Created`
 
@@ -404,14 +461,14 @@ This API relies on **MongoDB Atlas** for database storage and **Cloudinary** for
 
 ### 2️⃣ Login User (Generates JWT Tokens)
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/users/login`
-*   **Body Type**: `raw` (JSON)
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/users/login`
+- **Body Type**: `raw` (JSON)
 
 ```json
 {
-    "email": "levi@aot.com",
-    "password": "12345678"
+  "email": "levi@aot.com",
+  "password": "12345678"
 }
 ```
 
@@ -422,29 +479,30 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 3️⃣ Get Current User
 
-*   **Method**: `GET`
-*   **URL**: `{{Video Hosting}}/users/current-user`
-*   **Headers**: Requires the user to be logged in (cookies set by login).
-*   **Body**: None
+- **Method**: `GET`
+- **URL**: `{{Video Hosting}}/users/current-user`
+- **Headers**: Requires the user to be logged in (cookies set by login).
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "_id": "6a5cb07f4822053c999663b8",
-        "username": "leviackerman",
-        "email": "levi@aot.com",
-        "fullName": "Levi Ackerman",
-        "avatar": "http://res.cloudinary.com/...",
-        "coverImage": "http://res.cloudinary.com/...",
-        "watchHistory": [],
-        "createdAt": "2026-07-19T11:09:51.446Z",
-        "updatedAt": "2026-07-21T09:09:51.918Z",
-        "__v": 0
-    },
-    "message": "User fetched successfully",
-    "success": true
+  "statusCode": 200,
+  "data": {
+    "_id": "6a5cb07f4822053c999663b8",
+    "username": "leviackerman",
+    "email": "levi@aot.com",
+    "fullName": "Levi Ackerman",
+    "avatar": "http://res.cloudinary.com/...",
+    "coverImage": "http://res.cloudinary.com/...",
+    "watchHistory": [],
+    "createdAt": "2026-07-19T11:09:51.446Z",
+    "updatedAt": "2026-07-21T09:09:51.918Z",
+    "__v": 0
+  },
+  "message": "User fetched successfully",
+  "success": true
 }
 ```
 
@@ -452,28 +510,29 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 4️⃣ Get User Channel Profile
 
-*   **Method**: `GET`
-*   **URL**: `{{Video Hosting}}/users/c/leviackerman`
-*   **Headers**: Requires the user to be logged in (cookies set by login).
-*   **Body**: None
+- **Method**: `GET`
+- **URL**: `{{Video Hosting}}/users/c/leviackerman`
+- **Headers**: Requires the user to be logged in (cookies set by login).
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "_id": "6a5cb07f4822053c999663b8",
-        "username": "leviackerman",
-        "email": "levi@aot.com",
-        "fullName": "Levi Ackerman",
-        "avatar": "http://res.cloudinary.com/...",
-        "coverImage": "http://res.cloudinary.com/...",
-        "subscribersCount": 0,
-        "channelsSubscribedToCount": 0,
-        "isSubscribed": false
-    },
-    "message": "User channel fetched successfully",
-    "success": true
+  "statusCode": 200,
+  "data": {
+    "_id": "6a5cb07f4822053c999663b8",
+    "username": "leviackerman",
+    "email": "levi@aot.com",
+    "fullName": "Levi Ackerman",
+    "avatar": "http://res.cloudinary.com/...",
+    "coverImage": "http://res.cloudinary.com/...",
+    "subscribersCount": 0,
+    "channelsSubscribedToCount": 0,
+    "isSubscribed": false
+  },
+  "message": "User channel fetched successfully",
+  "success": true
 }
 ```
 
@@ -481,18 +540,19 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 5️⃣ Get Watch History
 
-*   **Method**: `GET`
-*   **URL**: `{{Video Hosting}}/users/history`
-*   **Headers**: Requires the user to be logged in (cookies set by login).
-*   **Body**: None
+- **Method**: `GET`
+- **URL**: `{{Video Hosting}}/users/history`
+- **Headers**: Requires the user to be logged in (cookies set by login).
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": [],
-    "message": "Watch history fetched successfully",
-    "success": true
+  "statusCode": 200,
+  "data": [],
+  "message": "Watch history fetched successfully",
+  "success": true
 }
 ```
 
@@ -500,25 +560,26 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 6️⃣ Change Password
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/users/change-password`
-*   **Headers**: Requires the user to be logged in (cookies set by login).
-*   **Body Type**: `raw` (JSON)
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/users/change-password`
+- **Headers**: Requires the user to be logged in (cookies set by login).
+- **Body Type**: `raw` (JSON)
 
 ```json
 {
-    "oldPassword": "123456789",
-    "newPassword": "12345678"
+  "oldPassword": "123456789",
+  "newPassword": "12345678"
 }
 ```
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {},
-    "message": "Password changed successfully",
-    "success": true
+  "statusCode": 200,
+  "data": {},
+  "message": "Password changed successfully",
+  "success": true
 }
 ```
 
@@ -526,20 +587,21 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 7️⃣ Refresh Token
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/users/refresh-token`
-*   **Headers**: Requires the refresh token cookie.
-*   **Body**: None
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/users/refresh-token`
+- **Headers**: Requires the refresh token cookie.
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    },
-    "message": "Access token refreshed",
-    "success": true
+  "statusCode": 200,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  },
+  "message": "Access token refreshed",
+  "success": true
 }
 ```
 
@@ -547,18 +609,19 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 8️⃣ Logout User (Clears Tokens)
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/users/logout`
-*   **Headers**: Requires the user to be logged in (cookies set by login).
-*   **Body**: None
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/users/logout`
+- **Headers**: Requires the user to be logged in (cookies set by login).
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {},
-    "message": "User logged Out",
-    "success": true
+  "statusCode": 200,
+  "data": {},
+  "message": "User logged Out",
+  "success": true
 }
 ```
 
@@ -566,30 +629,31 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 9️⃣ Publish a Video (Cloudinary Upload)
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/videos`
-*   **Headers**: Requires the user to be logged in (cookies set by login).
-*   **Body Type**: `form-data`
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/videos`
+- **Headers**: Requires the user to be logged in (cookies set by login).
+- **Body Type**: `form-data`
 
-| Key | Type | Example Value | Description |
-|-----|------|---------------|-------------|
-| `title` | Text | `My First Vlog` | Video title |
-| `description` | Text | `A day in my life` | Video description |
-| `videoFile` | File | `vlog.mp4` | **Required.** Uploads to Cloudinary. |
-| `thumbnail` | File | `thumbnail.jpg` | **Required.** Uploads to Cloudinary. |
+| Key           | Type | Example Value      | Description                          |
+| ------------- | ---- | ------------------ | ------------------------------------ |
+| `title`       | Text | `My First Vlog`    | Video title                          |
+| `description` | Text | `A day in my life` | Video description                    |
+| `videoFile`   | File | `vlog.mp4`         | **Required.** Uploads to Cloudinary. |
+| `thumbnail`   | File | `thumbnail.jpg`    | **Required.** Uploads to Cloudinary. |
 
 **Expected Response:** `201 Created`
+
 ```json
 {
-    "statusCode": 201,
-    "data": {
-        "videoFile": "http://res.cloudinary.com/...",
-        "thumbnail": "http://res.cloudinary.com/...",
-        "title": "My First Vlog",
-        "description": "A day in my life"
-    },
-    "message": "Video published successfully",
-    "success": true
+  "statusCode": 201,
+  "data": {
+    "videoFile": "http://res.cloudinary.com/...",
+    "thumbnail": "http://res.cloudinary.com/...",
+    "title": "My First Vlog",
+    "description": "A day in my life"
+  },
+  "message": "Video published successfully",
+  "success": true
 }
 ```
 
@@ -597,14 +661,14 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 🔟 Post a Comment
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/comments/:videoId`
-*   **Headers**: Requires the user to be logged in.
-*   **Body Type**: `raw` (JSON)
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/comments/:videoId`
+- **Headers**: Requires the user to be logged in.
+- **Body Type**: `raw` (JSON)
 
 ```json
 {
-    "content": "This is an amazing video!"
+  "content": "This is an amazing video!"
 }
 ```
 
@@ -614,20 +678,21 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 1️⃣1️⃣ Toggle a Like (Video/Comment/Tweet)
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/likes/toggle/v/:videoId` *(Replace `/v/` with `/c/` or `/t/` for comments/tweets)*
-*   **Headers**: Requires the user to be logged in.
-*   **Body**: None
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/likes/toggle/v/:videoId` _(Replace `/v/` with `/c/` or `/t/` for comments/tweets)_
+- **Headers**: Requires the user to be logged in.
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "liked": true
-    },
-    "message": "Like added to video",
-    "success": true
+  "statusCode": 200,
+  "data": {
+    "liked": true
+  },
+  "message": "Like added to video",
+  "success": true
 }
 ```
 
@@ -635,15 +700,15 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 1️⃣2️⃣ Create a Playlist
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/playlist`
-*   **Headers**: Requires the user to be logged in.
-*   **Body Type**: `raw` (JSON)
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/playlist`
+- **Headers**: Requires the user to be logged in.
+- **Body Type**: `raw` (JSON)
 
 ```json
 {
-    "name": "React Tutorials",
-    "description": "Best tutorials to learn React.js"
+  "name": "React Tutorials",
+  "description": "Best tutorials to learn React.js"
 }
 ```
 
@@ -653,20 +718,21 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 1️⃣3️⃣ Toggle Channel Subscription
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/subscriptions/c/:channelId`
-*   **Headers**: Requires the user to be logged in.
-*   **Body**: None
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/subscriptions/c/:channelId`
+- **Headers**: Requires the user to be logged in.
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "subscribed": true
-    },
-    "message": "Subscribed successfully",
-    "success": true
+  "statusCode": 200,
+  "data": {
+    "subscribed": true
+  },
+  "message": "Subscribed successfully",
+  "success": true
 }
 ```
 
@@ -674,14 +740,14 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 1️⃣4️⃣ Create a Tweet
 
-*   **Method**: `POST`
-*   **URL**: `{{Video Hosting}}/tweets`
-*   **Headers**: Requires the user to be logged in.
-*   **Body Type**: `raw` (JSON)
+- **Method**: `POST`
+- **URL**: `{{Video Hosting}}/tweets`
+- **Headers**: Requires the user to be logged in.
+- **Body Type**: `raw` (JSON)
 
 ```json
 {
-    "content": "Just launched my new channel!"
+  "content": "Just launched my new channel!"
 }
 ```
 
@@ -691,23 +757,24 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 1️⃣5️⃣ Get Channel Dashboard Stats
 
-*   **Method**: `GET`
-*   **URL**: `{{Video Hosting}}/dashboard/stats`
-*   **Headers**: Requires the user to be logged in.
-*   **Body**: None
+- **Method**: `GET`
+- **URL**: `{{Video Hosting}}/dashboard/stats`
+- **Headers**: Requires the user to be logged in.
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "totalSubscribers": 1500,
-        "totalVideos": 25,
-        "totalViews": 50000,
-        "totalLikes": 1200
-    },
-    "message": "Channel stats fetched successfully",
-    "success": true
+  "statusCode": 200,
+  "data": {
+    "totalSubscribers": 1500,
+    "totalVideos": 25,
+    "totalViews": 50000,
+    "totalLikes": 1200
+  },
+  "message": "Channel stats fetched successfully",
+  "success": true
 }
 ```
 
@@ -715,17 +782,18 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 1️⃣6️⃣ API Health Check
 
-*   **Method**: `GET`
-*   **URL**: `{{Video Hosting}}/healthcheck`
-*   **Body**: None
+- **Method**: `GET`
+- **URL**: `{{Video Hosting}}/healthcheck`
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {},
-    "message": "OK",
-    "success": true
+  "statusCode": 200,
+  "data": {},
+  "message": "OK",
+  "success": true
 }
 ```
 
@@ -733,44 +801,45 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 1️⃣7️⃣ Fetching All Videos (Home Feed)
 
-*   **Method**: `GET`
-*   **URL**: `{{Video Hosting}}/videos?page=1&limit=10&sortBy=createdAt&sortType=desc`
-*   **Body**: None
+- **Method**: `GET`
+- **URL**: `{{Video Hosting}}/videos?page=1&limit=10&sortBy=createdAt&sortType=desc`
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "docs": [
-            {
-                "_id": "6a604e404b74605254976f7d",
-                "videoFile": "http://res.cloudinary.com/...",
-                "thumbnail": "http://res.cloudinary.com/...",
-                "title": "My First Vlog",
-                "description": "A day in my life",
-                "duration": 19.64,
-                "views": 0,
-                "isPublished": true,
-                "owner": {
-                    "_id": "6a5cb07f4822053c999663b8",
-                    "username": "leviackerman",
-                    "avatar": "http://res.cloudinary.com/..."
-                }
-            }
-        ],
-        "totalDocs": 1,
-        "limit": 10,
-        "page": 1,
-        "totalPages": 1,
-        "pagingCounter": 1,
-        "hasPrevPage": false,
-        "hasNextPage": false,
-        "prevPage": null,
-        "nextPage": null
-    },
-    "message": "Videos fetched successfully",
-    "success": true
+  "statusCode": 200,
+  "data": {
+    "docs": [
+      {
+        "_id": "6a604e404b74605254976f7d",
+        "videoFile": "http://res.cloudinary.com/...",
+        "thumbnail": "http://res.cloudinary.com/...",
+        "title": "My First Vlog",
+        "description": "A day in my life",
+        "duration": 19.64,
+        "views": 0,
+        "isPublished": true,
+        "owner": {
+          "_id": "6a5cb07f4822053c999663b8",
+          "username": "leviackerman",
+          "avatar": "http://res.cloudinary.com/..."
+        }
+      }
+    ],
+    "totalDocs": 1,
+    "limit": 10,
+    "page": 1,
+    "totalPages": 1,
+    "pagingCounter": 1,
+    "hasPrevPage": false,
+    "hasNextPage": false,
+    "prevPage": null,
+    "nextPage": null
+  },
+  "message": "Videos fetched successfully",
+  "success": true
 }
 ```
 
@@ -778,34 +847,35 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 1️⃣8️⃣ Watching a Video (Fetch by ID)
 
-*   **Method**: `GET`
-*   **URL**: `{{Video Hosting}}/videos/:videoId`
-*   **Headers**: Requires the user to be logged in (to add to history).
-*   **Body**: None
+- **Method**: `GET`
+- **URL**: `{{Video Hosting}}/videos/:videoId`
+- **Headers**: Requires the user to be logged in (to add to history).
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "_id": "6a604e404b74605254976f7d",
-        "videoFile": "http://res.cloudinary.com/...",
-        "thumbnail": "http://res.cloudinary.com/...",
-        "title": "My First Vlog",
-        "description": "A day in my life",
-        "duration": 19.64,
-        "views": 1,
-        "isPublished": true,
-        "owner": {
-            "_id": "6a5cb07f4822053c999663b8",
-            "username": "leviackerman",
-            "avatar": "http://res.cloudinary.com/..."
-        },
-        "likesCount": 10,
-        "isLiked": true
+  "statusCode": 200,
+  "data": {
+    "_id": "6a604e404b74605254976f7d",
+    "videoFile": "http://res.cloudinary.com/...",
+    "thumbnail": "http://res.cloudinary.com/...",
+    "title": "My First Vlog",
+    "description": "A day in my life",
+    "duration": 19.64,
+    "views": 1,
+    "isPublished": true,
+    "owner": {
+      "_id": "6a5cb07f4822053c999663b8",
+      "username": "leviackerman",
+      "avatar": "http://res.cloudinary.com/..."
     },
-    "message": "Video fetched successfully",
-    "success": true
+    "likesCount": 10,
+    "isLiked": true
+  },
+  "message": "Video fetched successfully",
+  "success": true
 }
 ```
 
@@ -813,27 +883,28 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 1️⃣9️⃣ Updating User Avatar
 
-*   **Method**: `PATCH`
-*   **URL**: `{{Video Hosting}}/users/avatar`
-*   **Headers**: Requires the user to be logged in.
-*   **Body Type**: `form-data`
+- **Method**: `PATCH`
+- **URL**: `{{Video Hosting}}/users/avatar`
+- **Headers**: Requires the user to be logged in.
+- **Body Type**: `form-data`
 
-| Key | Type | Example Value | Description |
-|-----|------|---------------|-------------|
+| Key      | Type | Example Value    | Description                          |
+| -------- | ---- | ---------------- | ------------------------------------ |
 | `avatar` | File | `new_avatar.jpg` | **Required.** Uploads to Cloudinary. |
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "_id": "6a5cb07f4822053c999663b8",
-        "username": "leviackerman",
-        "avatar": "http://res.cloudinary.com/.../new_avatar.jpg",
-        "coverImage": "http://res.cloudinary.com/..."
-    },
-    "message": "Avatar image updated successfully",
-    "success": true
+  "statusCode": 200,
+  "data": {
+    "_id": "6a5cb07f4822053c999663b8",
+    "username": "leviackerman",
+    "avatar": "http://res.cloudinary.com/.../new_avatar.jpg",
+    "coverImage": "http://res.cloudinary.com/..."
+  },
+  "message": "Avatar image updated successfully",
+  "success": true
 }
 ```
 
@@ -841,22 +912,23 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 2️⃣0️⃣ Adding a Video to a Playlist
 
-*   **Method**: `PATCH`
-*   **URL**: `{{Video Hosting}}/playlist/add/:videoId/:playlistId`
-*   **Headers**: Requires the user to be logged in.
-*   **Body**: None
+- **Method**: `PATCH`
+- **URL**: `{{Video Hosting}}/playlist/add/:videoId/:playlistId`
+- **Headers**: Requires the user to be logged in.
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": {
-        "_id": "6a6053954b74605254976f8e",
-        "name": "React Tutorials",
-        "videos": ["6a604e404b74605254976f7d"]
-    },
-    "message": "Video added to playlist successfully",
-    "success": true
+  "statusCode": 200,
+  "data": {
+    "_id": "6a6053954b74605254976f8e",
+    "name": "React Tutorials",
+    "videos": ["6a604e404b74605254976f7d"]
+  },
+  "message": "Video added to playlist successfully",
+  "success": true
 }
 ```
 
@@ -864,34 +936,35 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 
 ### 2️⃣1️⃣ Getting Liked Videos
 
-*   **Method**: `GET`
-*   **URL**: `{{Video Hosting}}/likes/videos`
-*   **Headers**: Requires the user to be logged in.
-*   **Body**: None
+- **Method**: `GET`
+- **URL**: `{{Video Hosting}}/likes/videos`
+- **Headers**: Requires the user to be logged in.
+- **Body**: None
 
 **Expected Response:** `200 OK`
+
 ```json
 {
-    "statusCode": 200,
-    "data": [
-        {
-            "_id": "6a6057c74b74605254976f9d",
-            "video": {
-                "_id": "6a604e404b74605254976f7d",
-                "videoFile": "http://res.cloudinary.com/...",
-                "thumbnail": "http://res.cloudinary.com/...",
-                "title": "My First Vlog",
-                "duration": 19.64,
-                "views": 1,
-                "ownerDetails": {
-                    "username": "leviackerman",
-                    "avatar": "http://res.cloudinary.com/..."
-                }
-            }
+  "statusCode": 200,
+  "data": [
+    {
+      "_id": "6a6057c74b74605254976f9d",
+      "video": {
+        "_id": "6a604e404b74605254976f7d",
+        "videoFile": "http://res.cloudinary.com/...",
+        "thumbnail": "http://res.cloudinary.com/...",
+        "title": "My First Vlog",
+        "duration": 19.64,
+        "views": 1,
+        "ownerDetails": {
+          "username": "leviackerman",
+          "avatar": "http://res.cloudinary.com/..."
         }
-    ],
-    "message": "Liked videos fetched successfully",
-    "success": true
+      }
+    }
+  ],
+  "message": "Liked videos fetched successfully",
+  "success": true
 }
 ```
 
@@ -948,15 +1021,15 @@ MIT License — Copyright (c) 2026 Mohammad Asfin
 
 ## 📎 Useful Links
 
-| Resource | Link |
-|----------|------|
-| 🔗 ER Diagram | [Eraser.io Model](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj?origin=share) |
-| 🌐 GitHub Repository | [Video-Hosting-Backend-API](https://github.com/Mohammad-Asfin/Video-Hosting-Backend-API) |
-| 🤝 Contributing Guide | [CONTRIBUTING.md](./CONTRIBUTING.md) |
-| ☁️ Cloudinary | [cloudinary.com](https://cloudinary.com/) |
-| 🍃 MongoDB Atlas | [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas) |
-| 📗 Express Docs | [expressjs.com](https://expressjs.com/) |
-| 🟢 Node.js | [nodejs.org](https://nodejs.org/) |
+| Resource              | Link                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| 🔗 ER Diagram         | [Eraser.io Model](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj?origin=share)     |
+| 🌐 GitHub Repository  | [Video-Hosting-Backend-API](https://github.com/Mohammad-Asfin/Video-Hosting-Backend-API) |
+| 🤝 Contributing Guide | [CONTRIBUTING.md](./CONTRIBUTING.md)                                                     |
+| ☁️ Cloudinary         | [cloudinary.com](https://cloudinary.com/)                                                |
+| 🍃 MongoDB Atlas      | [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)                           |
+| 📗 Express Docs       | [expressjs.com](https://expressjs.com/)                                                  |
+| 🟢 Node.js            | [nodejs.org](https://nodejs.org/)                                                        |
 
 ---
 
@@ -974,7 +1047,7 @@ MIT License — Copyright (c) 2026 Mohammad Asfin
 
 <div align="center">
 
-*Built with ❤️ using the MERN Stack — MongoDB · Express · React · Node.js*
+_Built with ❤️ using the MERN Stack — MongoDB · Express · React · Node.js_
 
 ⭐ **Star this repo if you found it helpful!**
 

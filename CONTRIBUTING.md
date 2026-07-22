@@ -130,12 +130,14 @@ npx prettier --write .
 
 ### General Rules
 
-- Use ES Modules (`import`/`export`) — **no** CommonJS (`require`)
-- Use `async/await` — **no** raw Promises or callbacks
-- Always use the `asyncHandler` wrapper for controller functions
-- Always use `ApiError` and `ApiResponse` utility classes
-- Never log sensitive data (passwords, tokens) to the console
-- Keep controllers focused — put reusable logic in `utils/`
+- **Modular Design**: Use ES Modules (`import`/`export`) — **no** CommonJS (`require`).
+- **Asynchronous Code**: Use `async/await` — **no** raw Promises or callbacks.
+- **Controller Wrappers**: Always wrap controller functions inside the `asyncHandler` utility.
+- **Standard Responses & Errors**: Always use the `ApiError` and `ApiResponse` utility classes for consistent API outputs.
+- **Real-Time Integration**: For real-time updates (like notifications), utilize `emitToUser` from `src/socket.js`.
+- **Security & Validation**: Use appropriate rate-limiting (`commentLimiter`, etc.) and content moderation (`moderateContent`) middlewares for user-facing post/comment creations.
+- **Console Logs**: Never log sensitive user data (passwords, tokens) to the console.
+- **Logic Separation**: Keep controllers clean — put reusable helpers, database aggregations, and integrations in `utils/` or dedicated middleware functions.
 
 ---
 
@@ -171,4 +173,4 @@ Once your PR is reviewed and merged:
 
 ---
 
-*Thank you for contributing to this project! 🙌*
+_Thank you for contributing to this project! 🙌_
