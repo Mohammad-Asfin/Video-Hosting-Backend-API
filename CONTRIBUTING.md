@@ -29,11 +29,11 @@ By participating in this project, you agree to uphold a respectful and inclusive
 
 ## 🛠️ How to Contribute
 
-> **Important:** This project has specific contribution requirements. General PRs that add new features without completing assigned TODOs will **not** be merged.
+We are always looking for ways to improve! Since all core controller TODOs have been successfully completed, we are now accepting PRs for entirely new features.
 
 ### ✅ Accepted Contributions
 
-1. **Complete all TODO assignments** in the `src/controllers/` folder
+1. **New features** that enhance the backend API
 2. **Bug fixes** with proper reproduction steps
 3. **Documentation improvements**
 4. **Security patches**
@@ -83,7 +83,7 @@ git checkout -b fix/your-bug-fix
 
 ### 7. Make Your Changes
 
-Complete all TODO controllers, fix bugs, or improve documentation.
+Implement your new feature, fix bugs, or improve documentation.
 
 ### 8. Commit Your Changes
 
@@ -113,7 +113,6 @@ Then open a Pull Request on GitHub against the `main` branch.
   - Steps to test your changes
   - Screenshots (if UI-related)
   - Link to related issue (if applicable)
-- All controllers must be **fully implemented** — no partial work
 - Code must follow project coding standards (Prettier formatted)
 - No merge conflicts with `main`
 
