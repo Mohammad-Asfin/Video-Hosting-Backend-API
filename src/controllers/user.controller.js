@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
+import { Playlist } from "../models/playlist.model.js"
 import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
@@ -91,6 +92,14 @@ const registerUser = asyncHandler( async (req, res) => {
     if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the user")
     }
+
+    // Auto-create Watch Later playlist
+    await Playlist.create({
+        name: "Watch Later",
+        description: "Default playlist for videos you want to watch later",
+        videos: [],
+        owner: createdUser._id
+    });
 
     return res.status(201).json(
         new ApiResponse(200, createdUser, "User registered Successfully")

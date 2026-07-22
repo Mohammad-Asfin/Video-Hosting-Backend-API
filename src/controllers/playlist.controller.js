@@ -149,6 +149,35 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, playlist, "Playlist updated successfully"));
 })
 
+const toggleWatchLater = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video id");
+    }
+
+    let playlist = await Playlist.findOne({ name: "Watch Later", owner: req.user?._id });
+
+    if (!playlist) {
+        playlist = await Playlist.create({
+            name: "Watch Later",
+            description: "Default playlist for videos you want to watch later",
+            videos: [],
+            owner: req.user?._id
+        });
+    }
+
+    if (playlist.videos.includes(videoId)) {
+        playlist.videos = playlist.videos.filter(v => v.toString() !== videoId);
+    } else {
+        playlist.videos.push(videoId);
+    }
+
+    await playlist.save();
+
+    return res.status(200).json(new ApiResponse(200, playlist, "Watch Later toggled successfully"));
+});
+
 export {
     createPlaylist,
     getUserPlaylists,
@@ -156,5 +185,6 @@ export {
     addVideoToPlaylist,
     removeVideoFromPlaylist,
     deletePlaylist,
-    updatePlaylist
+    updatePlaylist,
+    toggleWatchLater
 }

@@ -1,6 +1,7 @@
 import mongoose, {isValidObjectId} from "mongoose"
 import {Video} from "../models/video.model.js"
 import {User} from "../models/user.model.js"
+import {View} from "../models/view.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
@@ -8,7 +9,7 @@ import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+    const { page = 1, limit = 10, query, sortBy, sortType, userId, category, tags } = req.query;
 
     const pipeline = [];
 
@@ -16,6 +17,23 @@ const getAllVideos = asyncHandler(async (req, res) => {
         pipeline.push({
             $match: {
                 title: { $regex: query, $options: "i" }
+            }
+        });
+    }
+
+    if (category) {
+        pipeline.push({
+            $match: {
+                category: category
+            }
+        });
+    }
+
+    if (tags) {
+        const tagsArray = tags.split(",").map(tag => tag.trim());
+        pipeline.push({
+            $match: {
+                tags: { $in: tagsArray }
             }
         });
     }
@@ -61,7 +79,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    const { title, description} = req.body;
+    const { title, description, category, tags } = req.body;
 
     if (!title || !description) {
         throw new ApiError(400, "Title and description are required");
@@ -94,7 +112,9 @@ const publishAVideo = asyncHandler(async (req, res) => {
         title,
         description,
         duration: video.duration || 0,
-        owner: req.user?._id
+        owner: req.user?._id,
+        category: category || "Entertainment",
+        tags: tags ? (Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map(t=>t.trim()) : [])) : []
     });
 
     return res.status(201).json(new ApiResponse(201, newVideo, "Video published successfully"));
@@ -112,6 +132,13 @@ const getVideoById = asyncHandler(async (req, res) => {
     if (!video) {
         throw new ApiError(404, "Video not found");
     }
+
+    // log granular view
+    await View.create({
+        video: videoId,
+        user: req.user?._id || null,
+        ipAddress: req.ip
+    });
 
     // increment views
     video.views += 1;

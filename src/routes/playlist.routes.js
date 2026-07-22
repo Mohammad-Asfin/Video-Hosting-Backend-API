@@ -7,6 +7,7 @@ import {
     getUserPlaylists,
     removeVideoFromPlaylist,
     updatePlaylist,
+    toggleWatchLater
 } from "../controllers/playlist.controller.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
 
@@ -24,6 +25,8 @@ router
 
 router.route("/add/:videoId/:playlistId").patch(addVideoToPlaylist);
 router.route("/remove/:videoId/:playlistId").patch(removeVideoFromPlaylist);
+
+router.route("/watch-later/:videoId").post(toggleWatchLater);
 
 router.route("/user/:userId").get(getUserPlaylists);
 

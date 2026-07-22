@@ -1,5 +1,7 @@
 import mongoose from "mongoose"
 import {Comment} from "../models/comment.model.js"
+import {Video} from "../models/video.model.js"
+import {Notification} from "../models/notification.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
@@ -38,6 +40,17 @@ const addComment = asyncHandler(async (req, res) => {
         video: videoId,
         owner: req.user?._id
     });
+
+    const video = await Video.findById(videoId).select("owner");
+    if (video && video.owner.toString() !== req.user?._id.toString()) {
+        await Notification.create({
+            recipient: video.owner,
+            sender: req.user?._id,
+            type: 'COMMENT',
+            video: videoId,
+            comment: comment._id
+        });
+    }
 
     return res.status(201).json(new ApiResponse(201, comment, "Comment added successfully"));
 })

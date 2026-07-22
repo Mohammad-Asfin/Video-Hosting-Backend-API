@@ -8,6 +8,19 @@ const tweetSchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
         ref: "User"
+    },
+    image: {
+        type: String // cloudinary url
+    },
+    poll: {
+        options: [{
+            text: String,
+            votes: { type: Number, default: 0 }
+        }],
+        voters: [{
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        }]
     }
 }, {timestamps: true})
 

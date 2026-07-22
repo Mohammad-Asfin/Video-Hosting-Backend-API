@@ -34,6 +34,14 @@ const videoSchema = new Schema(
         owner: {
             type: Schema.Types.ObjectId,
             ref: "User"
+        },
+        category: {
+            type: String,
+            default: "Entertainment"
+        },
+        tags: {
+            type: [String],
+            default: []
         }
 
     }, 
