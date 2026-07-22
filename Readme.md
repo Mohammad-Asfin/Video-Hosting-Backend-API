@@ -349,8 +349,8 @@ http://localhost:8000/api/v1
 | Method   | Endpoint                | Description                                                      | Auth |
 | -------- | ----------------------- | ---------------------------------------------------------------- | :--: |
 | `GET`    | `/:videoId`             | Get all comments for a video                                     |  ✅  |
-| `POST`   | `/:videoId`             | Add a comment to a video (supports rate limit & profanity check) |  ✅  |
-| `PATCH`  | `/c/:commentId`         | Update a comment (supports profanity check)                      |  ✅  |
+| `POST`   | `/:videoId`             | Add a comment to a video (supports rate limit)                   |  ✅  |
+| `PATCH`  | `/c/:commentId`         | Update a comment                                                 |  ✅  |
 | `DELETE` | `/c/:commentId`         | Delete a comment                                                 |  ✅  |
 | `GET`    | `/c/:commentId/replies` | Get nested replies for a comment                                 |  ✅  |
 
@@ -389,7 +389,7 @@ http://localhost:8000/api/v1
 | -------- | ---------------- | ------------------------------------------------------------------------ | :--: |
 | `POST`   | `/`              | Create tweet (supports content + optional image + optional poll options) |  ✅  |
 | `GET`    | `/user/:userId`  | Get user tweets                                                          |  ✅  |
-| `PATCH`  | `/:tweetId`      | Update tweet (supports profanity check)                                  |  ✅  |
+| `PATCH`  | `/:tweetId`      | Update tweet                                                             |  ✅  |
 | `DELETE` | `/:tweetId`      | Delete tweet                                                             |  ✅  |
 | `PATCH`  | `/:tweetId/vote` | Vote on a poll option                                                    |  ✅  |
 
@@ -963,6 +963,57 @@ The server validates the credentials and returns an `accessToken` (for authorizi
 ```
 
 ---
+
+## 🧪 Testing with Postman
+
+To test this API locally or in production using Postman, follow these configuration guidelines:
+
+### 1. Set Up Environment Variables
+Create a new Postman environment and define the following variables:
+- `base_url`: `http://localhost:8000/api/v1`
+
+### 2. Managing Authentication (JWT)
+The API uses HTTP-only cookies (`accessToken` and `refreshToken`) for authentication:
+- **Automatic Handling**: Postman handles cookies automatically. When you send a successful `POST /users/login` request, the server returns the tokens in the `Set-Cookie` header. Subsequent requests will include them automatically.
+- **Manual Header Handling**: If you prefer to pass tokens via headers, you can manually set the `Authorization` header on protected endpoints:
+  - Header: `Authorization`
+  - Value: `Bearer <your_access_token>`
+
+### 3. File Uploads (Multipart Form Data)
+For endpoints requiring file uploads (e.g., `POST /users/register` or `POST /videos/`):
+- Change the body type in Postman to **form-data**.
+- Use the exact field names defined in the routes:
+  - **User Registration**: `avatar` (File), `coverImage` (File), `username` (Text), `email` (Text), `fullName` (Text), `password` (Text).
+  - **Video Upload**: `videoFile` (File), `thumbnail` (File), `title` (Text), `description` (Text).
+
+---
+
+## 🔄 Data Flow Architecture
+
+The diagram below illustrates how an HTTP request flows through the backend application architecture from the client to the database and back:
+
+```mermaid
+graph TD
+    A[Client / Postman] -->|HTTP Request| B[Express App / Entry Point]
+    B -->|Router Mapping| C[Express Router]
+    C -->|CORS & rateLimiter Middlewares| D[Security/Limit Middlewares]
+    D -->|verifyJWT & upload Middlewares| E[Auth & File Upload Middlewares]
+    E -->|Call Controller| F[Controller Handler]
+    F -->|Upload Media| G[Cloudinary Service]
+    F -->|Query / Mutate| H[Mongoose Models]
+    H -->|Read/Write| I[(MongoDB Database)]
+    F -->|ApiResponse / ApiError| A
+```
+
+### Request Pipeline Stages:
+1. **Client Request**: The client sends an HTTP request targeting a specific resource route.
+2. **Routing & Security**: Express resolves the path. Security/rate limiter middlewares check request frequency and headers.
+3. **Authentication & Uploads**: Authentication middlewares (`verifyJWT`) validate tokens. If a file is uploaded, Multer processes the file and attaches it to `req.file` or `req.files`.
+4. **Controller Logic**: The controller executes business logic, performs data validation, uploads media to Cloudinary, and queries MongoDB via Mongoose Models.
+5. **Response Delivery**: The controller wraps the results in a standardized `ApiResponse` (or forwards errors using `ApiError`) and sends it back to the client.
+
+---
+
 
 ## 📄 npm Scripts
 
